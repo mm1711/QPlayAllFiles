@@ -16,5 +16,8 @@ Each channel has a note, a MIDI channel, and a group value assigned. A bit value
 
 ![Overview] (https://moser-engineering.de/images/overview_small.jpg)
 
-
+## Executables
+You can find the Windows executable in windows_executables_release.zip
+Unpack this ZIP archive and the prime_numbers.zip archive.
+Run QPlayAllFiles.exe
 
