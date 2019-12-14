@@ -40,13 +40,13 @@ CSegmentRenderArea::CSegmentRenderArea(QWidget *parent, qint32 _channels) :
   setMaximumSize(QSize(m_max_segment_render_width, m_max_segment_render_height));
 
   QPalette palette;
-  QBrush brush(QColor(255, 255, 255, 255));
-  brush.setStyle(Qt::SolidPattern);
-  palette.setBrush(QPalette::Active, QPalette::Base, brush);
+  QBrush _brush(QColor(255, 255, 255, 255));
+  _brush.setStyle(Qt::SolidPattern);
+  palette.setBrush(QPalette::Active, QPalette::Base, _brush);
   QBrush brush1(QColor(255, 255, 200, 255));
   brush1.setStyle(Qt::SolidPattern);
   palette.setBrush(QPalette::Active, QPalette::Window, brush1);
-  palette.setBrush(QPalette::Inactive, QPalette::Base, brush);
+  palette.setBrush(QPalette::Inactive, QPalette::Base, _brush);
   palette.setBrush(QPalette::Inactive, QPalette::Window, brush1);
   palette.setBrush(QPalette::Disabled, QPalette::Base, brush1);
   palette.setBrush(QPalette::Disabled, QPalette::Window, brush1);
