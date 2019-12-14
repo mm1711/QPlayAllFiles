@@ -556,6 +556,7 @@ void MainWindow::play_segment(char *segment)
 {
   qint32 note;
   qint32 voice;
+  QString out;
 
   for(int chn = 0; chn <   m_settings.m_current_max_channels; chn++)
   {
@@ -565,6 +566,7 @@ void MainWindow::play_segment(char *segment)
     {
       if(segment[chn] != 0)
       {
+        out += QString::number((m_current_segment*m_settings.m_current_max_channels)+chn) + "-" + m_channels[chn]->getCurrentNoteText() + " ";
         if(!m_channels[chn]->getChannelState() || m_settings.m_Staccato)
         {
           m_channels[chn]->setChannelState(true);
@@ -584,6 +586,7 @@ void MainWindow::play_segment(char *segment)
       }
     }
   }
+  qDebug() << out;
 }
 
 /*! Initialize the channels with the assigned MIDI instruments
