@@ -42,6 +42,12 @@ CSettingsDialog::CSettingsDialog(QWidget *parent) :
   m_midi_out = new QMidiOut();
   m_max_channels = 99;
 
+  QStringList denominators;
+  denominators << "4" << "8" << "16" << "32" ;
+  ui->Denominator_comboBox->addItems(denominators);
+  ui->shortestNote_comboBox->addItems(denominators);
+  ui->Accent_spinBox->setValue(1);
+
   QMap<QString /* key */, QString /* name */> midimap = m_midi_out->devices();
   for(int ix = 0; ix < midimap.size(); ix++)
   {
@@ -60,8 +66,6 @@ CSettingsDialog::CSettingsDialog(QWidget *parent) :
   {
     ui->audio_sampling_rate_comboBox->addItem(QString::number(sample_rates.at(kk)));
   }
-
-
 }
 
 CSettingsDialog::~CSettingsDialog()
@@ -73,13 +77,33 @@ CSettingsDialog::~CSettingsDialog()
 /*! Initialize dialog controls with values from 'settings'
 
 
-<b>History   :</b>	 26-09-2019mm created by Michael Moser
+<b>History   :</b>
+26-09-2019mm  created by Michael Moser
+13-05-2020mm  set values for m_bar_numerator, m_bar_denominator,
+              m_shortest_note and m_bar_accent
+
 */
 void CSettingsDialog::setSettings(CSettings settings)
 {
   ui->channels_spinBox->setMaximum(m_max_channels);
   ui->channels_spinBox->setValue(settings.m_current_max_channels);
   ui->BPM_lineEdit->setText(QString::number(settings.m_BPM));
+  ui->Numerator_spinBox->setValue(settings.m_bar_numerator);
+
+  ui->Denominator_comboBox->setCurrentText(QString::number(settings.m_bar_denominator));
+
+  ui->Accent_spinBox->setValue(settings.m_bar_accent);
+  ui->Accent_spinBox->setMaximum(settings.m_bar_numerator);
+
+  initialize_shortestNote_comboBox(settings.m_bar_denominator);
+  ui->shortestNote_comboBox->setCurrentText(QString::number(settings.m_shortest_note));
+
+  ui->intervalVariation_checkBox->setChecked(settings.m_with_interval_variation);
+  ui->minIntervalVariation_spinBox->setValue(settings.m_min_interval_variation);
+  ui->maxIntervalVariation_spinBox->setValue(settings.m_max_interval_variation);
+  ui->metronome_checkBox->setChecked(settings.m_with_metronome);
+  ui->metronom_spinBox->setValue(settings.m_metronome_note);
+
   ui->staccato_checkBox->setChecked(settings.m_Staccato);
   ui->loop_checkBox->setChecked(settings.m_Loop);
   ui->firstSegment_lineEdit->setText(QString::number(settings.m_FirstSegment));
@@ -111,18 +135,62 @@ void CSettingsDialog::setSettings(CSettings settings)
     ui->MIDI_Interface_comboBox->setCurrentIndex(
           ui->MIDI_Interface_comboBox->findText(settings.m_midi_out_name));
   }
-
 }
+
+/*! Initialize shortestNote_comboBox
+
+  \param  denominator   denominator of bar
+
+<b>History   :</b>
+13-05-2020mm	created by Michael Moser
+*/
+void CSettingsDialog::initialize_shortestNote_comboBox(int denominator)
+{
+  QStringList denominators;
+  switch (denominator)
+  {
+    case 4:
+    {
+      denominators << "4" << "8" << "16" << "32" ;
+      break;
+    }
+    case 8:
+    {
+      denominators << "8" << "16" << "32" ;
+      break;
+    }
+    case 16:
+    {
+      denominators << "16" << "32" ;
+      break;
+    }
+    case 32:
+    {
+      denominators << "32" ;
+      break;
+    }
+  }
+  ui->shortestNote_comboBox->clear();
+  ui->shortestNote_comboBox->addItems(denominators);
+}
+
 
 /*! Return dialog controls values in 'settings'
 
 
-<b>History   :</b>	 26-09-2019mm created by Michael Moser
+<b>History   :</b>
+26-09-2019mm  created by Michael Moser
+13-05-2020mm  get values from m_bar_numerator, m_bar_denominator,
+              m_shortest_note and m_bar_accent
 */
 void CSettingsDialog::getSettings(CSettings& settings)
 {
   settings.m_current_max_channels = ui->channels_spinBox->value();
   settings.m_BPM = ui->BPM_lineEdit->text().toInt();
+  settings.m_bar_numerator = ui->Numerator_spinBox->value();
+  settings.m_bar_denominator = (ui->Denominator_comboBox->currentText()).toInt();
+  settings.m_bar_accent = ui->Accent_spinBox->value();
+  settings.m_shortest_note = (ui->shortestNote_comboBox->currentText()).toInt();
   settings.m_Staccato = ui->staccato_checkBox->isChecked();
   settings.m_Loop = ui->loop_checkBox->isChecked();
   settings.m_FirstSegment = ui->firstSegment_lineEdit->text().toLongLong();
@@ -132,7 +200,11 @@ void CSettingsDialog::getSettings(CSettings& settings)
   settings.m_audio_container = ui->audio_container_comboBox->currentText();
   settings.m_audio_sample_rate = ui->audio_sampling_rate_comboBox->currentText().toInt();
   settings.m_midi_out_name = ui->MIDI_Interface_comboBox->currentText();
-
+  settings.m_with_interval_variation = ui->intervalVariation_checkBox->isChecked();
+  settings.m_min_interval_variation = ui->minIntervalVariation_spinBox->value();
+  settings.m_max_interval_variation = ui->maxIntervalVariation_spinBox->value();
+  settings.m_with_metronome = ui->metronome_checkBox->isChecked();
+  settings.m_metronome_note = ui->metronom_spinBox->value();
 }
 
 /*! Event handler for "First" button
@@ -169,5 +241,45 @@ void CSettingsDialog::on_set_last_segment_Btn_clicked()
 void CSettingsDialog::on_channels_spinBox_valueChanged(int )
 {
   on_set_last_segment_Btn_clicked();
+}
+
+/*! Event handler for Numerator_spinBox changed value
+
+  When the bar numerator is changed, update maximum value of Accent_spinBox
+
+<b>History   :</b>
+13-05-2020mm created by Michael Moser
+*/
+void CSettingsDialog::on_Numerator_spinBox_valueChanged(int arg1)
+{
+  ui->Accent_spinBox->setMaximum(arg1);
+}
+
+/*! Event handler for Denominator_comboBox changed value
+
+  When the bar denominator is changed, update values in shortestNote_comboBox
+
+<b>History   :</b>
+13-05-2020mm created by Michael Moser
+*/
+void CSettingsDialog::on_Denominator_comboBox_currentIndexChanged(const QString &arg1)
+{
+  int denominator = arg1.toInt();
+
+  QString current =  ui->shortestNote_comboBox->currentText();
+
+  if(current.isEmpty())
+  {
+    return;
+  }
+
+  int current_shortest = current.toInt();
+
+
+//  if( current_shortest < denominator)
+  {
+    initialize_shortestNote_comboBox(denominator);
+    ui->shortestNote_comboBox->setCurrentText(current);
+  }
 }
 

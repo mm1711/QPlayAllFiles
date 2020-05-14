@@ -7,7 +7,11 @@ Implements all application logic.
 
 <b>Last edit	:</b>
 
-<b>History   :</b>	26-09-2019mm		creation by Michael Moser
+<b>History   :</b>
+26-09-2019mm	creation by Michael Moser
+13-05-2020mm  New setting members: m_bar_numerator, m_bar_denominator, m_shortest_note and m_bar_accent
+              Use QT_NO_DEBUG for qDebug() outputs
+
 
 */
 
@@ -39,6 +43,12 @@ MainWindow::MainWindow(QWidget *parent)
 {
   ui->setupUi(this);
 
+  QCoreApplication::setOrganizationName("moser-engineering");
+  QCoreApplication::setOrganizationDomain("moser-engineering.de");
+  QCoreApplication::setApplicationName(qApp->applicationName());
+
+  m_prng.securelySeeded();
+
   app_caption = qApp->applicationName() + " V";
   setWindowTitle( app_caption + version);
 
@@ -56,8 +66,19 @@ MainWindow::MainWindow(QWidget *parent)
   m_current_scale = 0;
   m_current_mode = 0;
 
-  m_last_config_path = QString(".");
-  m_last_data_path = QString(".");
+  QSettings settings;
+  m_last_config_file = settings.value("last_config_file", "").toString();
+  if(!m_last_config_file.isEmpty())
+  {
+    QFileInfo fi(m_last_config_file);
+    m_last_config_path = fi.path();
+  }
+  else
+  {
+    m_last_config_path = QString(".");
+  }
+  m_last_data_path = settings.value("last_data_path", ".").toString();
+
 
   m_playing = false;
   m_init_play = true;
@@ -83,6 +104,13 @@ MainWindow::MainWindow(QWidget *parent)
   connect(m_audioRecorder, &QAudioRecorder::statusChanged, this, &MainWindow::updateStatus);
   connect(m_audioRecorder, QOverload<QMediaRecorder::Error>::of(&QAudioRecorder::error), this,
           &MainWindow::displayErrorMessage);
+
+
+  if(!m_last_config_file.isEmpty())
+  {
+    loadConfig(m_last_config_file);
+  }
+
 }
 
 MainWindow::~MainWindow()
@@ -248,6 +276,8 @@ void MainWindow::on_actionOpen_triggered()
     QFileInfo fi(m_filename);
     m_last_data_path = fi.path();
 
+    QSettings settings;
+    settings.setValue("last_data_path", m_last_data_path);
 
     openFile();
   }
@@ -439,6 +469,8 @@ void MainWindow::on_playBtn_clicked()
         init_MIDI_instruments();
 
         m_current_segment = m_settings.m_FirstSegment;
+        m_current_count_time = 0;
+        m_current_played_note = 0;
 
         m_status_bar_label->setText(QString(tr("Current Segment: %1")).arg(m_current_segment, 16));
         position_segment(m_settings.m_FirstSegment);
@@ -520,12 +552,29 @@ void  MainWindow::midi_clock_timeout()
   m_status_bar_label->setText(QString(tr("Current Segment: %1")).arg(m_current_segment, 16));
 
   char *pTmpSeg = &m_buffer[(m_current_segment % c_max_segments) *   m_settings.m_current_max_channels];
-  play_segment(pTmpSeg);
+  int played_chns = play_segment(pTmpSeg);
+  int delta_interval = 0;
+
+  if(m_settings.m_with_interval_variation)
+  {
+    if(/* played_chns > 3 && */ primeList.indexOf(played_chns) > 0)
+    {
+      delta_interval = m_prng.bounded(m_settings.m_min_interval_variation,
+                                      m_settings.m_max_interval_variation);
+      if(primeList.indexOf(m_prng.bounded(0, primeList.last())) > 0)
+      {
+        delta_interval *= -1;
+      }
+    }
+  }
+
   if(m_current_segment++ >= m_settings.m_LastSegment)
   {
     if(m_settings.m_Loop)
     {
       m_current_segment = m_settings.m_FirstSegment;
+      m_current_count_time = 0;
+      m_current_played_note = 0;
       position_segment(m_current_segment);
     }
     else
@@ -533,6 +582,20 @@ void  MainWindow::midi_clock_timeout()
       m_midi_clock->stop();
     }
   }
+
+  m_current_played_note++;
+  int multiplier = m_settings.m_shortest_note / m_settings.m_bar_numerator;
+  if((m_current_played_note % multiplier) == 0)
+  {
+    m_current_count_time++;
+    if((m_current_count_time  % m_settings.m_bar_numerator) == 0)
+    {
+      m_current_count_time = 0;
+    }
+  }
+#ifndef QT_NO_DEBUG
+  qDebug("played=%lld count=%d delta_interval=%d", m_current_played_note, m_current_count_time, delta_interval);
+#endif
   if(!m_segmentRenderArea->moveWindow(1))
   {
     // Read next segments
@@ -541,7 +604,7 @@ void  MainWindow::midi_clock_timeout()
     m_bits_to_bytes->readBitsAsBytes(&m_buffer[m_buffer_read_size/2], static_cast<quint32>(m_buffer_read_size/2));
     m_segmentRenderArea->setData(m_buffer, c_max_segments);
   }
-  m_midi_clock->start(m_midi_clock_interval);
+  m_midi_clock->start(m_midi_clock_interval+delta_interval);
 }
 
 /*! Play the current segment
@@ -552,27 +615,46 @@ void  MainWindow::midi_clock_timeout()
 
 <b>History   :</b>	 26-09-2019mm		created by Michael Moser
 */
-void MainWindow::play_segment(char *segment)
+int MainWindow::play_segment(char *segment)
 {
   qint32 note;
   qint32 voice;
   QString out;
+  int played_chns = 0;
 
+#ifndef QT_NO_DEBUG
+  if((m_current_count_time == (m_settings.m_bar_accent-1)) &&
+     ((m_current_played_note % m_settings.m_bar_numerator) == 0))
+  {
+    qDebug("Accent>>>>>>>>>>>>>>>>>>>>>");
+  }
+#endif
   for(int chn = 0; chn <   m_settings.m_current_max_channels; chn++)
   {
     note = m_channels[chn]->getCurrentNoteIndex();
     voice = m_channels[chn]->getCurrentVoiceIndex();
     if(note != c_invalid_note)
     {
+#ifndef QT_NO_DEBUG
+//      qDebug("note=%d voice=%d", note, voice);
+#endif
+
       if(segment[chn] != 0)
       {
-        out += QString::number((m_current_segment*m_settings.m_current_max_channels)+chn) + "-" + m_channels[chn]->getCurrentNoteText() + " ";
+//        out += QString::number((m_current_segment*m_settings.m_current_max_channels)+chn) + "-" + m_channels[chn]->getCurrentNoteText() + " ";
         if(!m_channels[chn]->getChannelState() || m_settings.m_Staccato)
         {
           m_channels[chn]->setChannelState(true);
           if(m_midi_out != nullptr)
           {
-            m_midi_out->noteOn(note, voice, m_channels[chn]->getCurrentVelocityValue());
+            int velocity = m_channels[chn]->getCurrentVelocityValue();
+            if((m_current_count_time == (m_settings.m_bar_accent-1)) &&
+               ((m_current_played_note % m_settings.m_bar_numerator) == 0))
+            {
+              velocity = CChannelProperties::c_velocity_fff;
+            }
+            played_chns++;
+            m_midi_out->noteOn(note, voice, velocity);
           }
         }
       }
@@ -586,7 +668,27 @@ void MainWindow::play_segment(char *segment)
       }
     }
   }
-  qDebug() << out;
+
+  if(m_settings.m_with_metronome)
+  {
+    // Always on beat 1
+    if((m_current_count_time ==  0 /* (m_settings.m_bar_accent-1) */) &&
+       ((m_current_played_note % m_settings.m_bar_numerator) == 0))
+    {
+      m_midi_out->noteOn(m_settings.m_metronome_note, 9, CChannelProperties::c_velocity_ffff);
+    }
+    else
+    {
+       m_midi_out->noteOff(m_settings.m_metronome_note, 9);
+    }
+  }
+#ifndef QT_NO_DEBUG
+  qDebug("played_chns=%d", played_chns);
+#endif
+
+//  qDebug() << out;
+
+  return played_chns;
 }
 
 /*! Initialize the channels with the assigned MIDI instruments
@@ -659,28 +761,42 @@ void MainWindow::show_hide_channels()
 */
 void MainWindow::saveConfig(QTextStream& os)
 {
-//  qDebug("%s", qPrintable(qApp->applicationName()));
+#ifndef QT_NO_DEBUG
+  qDebug("%s", qPrintable(qApp->applicationName()));
+#endif
   os << qApp->applicationName() << "\n";
 
-//  qDebug("%s", qPrintable(c_settings_version));
+#ifndef QT_NO_DEBUG
+  qDebug("%s", qPrintable(c_settings_version));
+#endif
   os << c_settings_version << "\n";
 
-//  qDebug("%s", qPrintable(saveGeneralSettings()));
+#ifndef QT_NO_DEBUG
+  qDebug("%s", qPrintable(saveGeneralSettings()));
+#endif
   os << saveGeneralSettings() << "\n";
 
   for(int ix = 0; ix <   m_settings.m_current_max_channels; ix++)
   {
-//    qDebug("%s", qPrintable(m_channels[ix]->toString()));
+#ifndef QT_NO_DEBUG
+    qDebug("%s", qPrintable(m_channels[ix]->toString()));
+#endif
     os << m_channels[ix]->toString() << "\n";
   }
 
-//  qDebug("%s", qPrintable(saveMIDI_Instruments()));
+#ifndef QT_NO_DEBUG
+  qDebug("%s", qPrintable(saveMIDI_Instruments()));
+#endif
   os << saveMIDI_Instruments() << "\n";
 
-//  qDebug("%s", qPrintable(saveScaleSettings()));
+#ifndef QT_NO_DEBUG
+  qDebug("%s", qPrintable(saveScaleSettings()));
+#endif
   os << saveScaleSettings() << "\n";
 
-//  qDebug("%s", qPrintable(saveAudioSettings()));
+#ifndef QT_NO_DEBUG
+  qDebug("%s", qPrintable(saveAudioSettings()));
+#endif
   os << saveAudioSettings() << "\n";
 }
 
@@ -702,13 +818,16 @@ void MainWindow::restoreConfig(QFile& in)
   {
     cfg_in = in.readLine();
     cfg_in = cfg_in.remove("\n");
-//    qDebug("%s", qPrintable(cfg_in));
-
+#ifndef QT_NO_DEBUG
+    qDebug("%s", qPrintable(cfg_in));
+#endif
     switch(state)
     {
       case 0:
       {
-//        qDebug("%s %s", qPrintable(cfg_in), qPrintable(qApp->applicationName()));
+#ifndef QT_NO_DEBUG
+        qDebug("%s %s", qPrintable(cfg_in), qPrintable(qApp->applicationName()));
+#endif
         if(cfg_in == qApp->applicationName())
         {
           state++;
@@ -728,6 +847,9 @@ void MainWindow::restoreConfig(QFile& in)
           if(cfg_in_list.at(0) == "version")
           {
             version = cfg_in_list.at(1);
+#ifndef QT_NO_DEBUG
+            qDebug("version=%s", qPrintable(version));
+#endif
             state = 2;
           }
           else
@@ -960,7 +1082,10 @@ bool MainWindow::restoreScaleSettings(QStringList scales_list, QString version)
 
   \return  ";" separated QString
 
-<b>History   :</b>	 26-09-2019mm		created by Michael Moser
+<b>History   :</b>
+26-09-2019mm  created by Michael Moser
+13-05-2020mm  save values m_bar_numerator, m_bar_denominator, m_shortest_note and m_bar_accent
+
 */
 QString MainWindow::saveGeneralSettings()
 {
@@ -974,6 +1099,15 @@ QString MainWindow::saveGeneralSettings()
   str += (m_settings.m_Loop ? "1;" : "0;");
   str += QString::number(m_settings.m_FirstSegment) + ";" ;
   str += QString::number(m_settings.m_LastSegment) + ";" ;
+  str += QString::number(m_settings.m_bar_numerator) + ";" ;
+  str += QString::number(m_settings.m_bar_denominator) + ";" ;
+  str += QString::number(m_settings.m_bar_accent) + ";" ;
+  str += QString::number(m_settings.m_shortest_note) + ";" ;
+  str += (m_settings.m_with_interval_variation ? "1;" : "0;");
+  str += QString::number(m_settings.m_min_interval_variation ) + ";" ;
+  str += QString::number(m_settings.m_max_interval_variation) + ";" ;
+  str += (m_settings.m_with_metronome ? "1;" : "0;");
+  str += QString::number(m_settings.m_metronome_note) + ";" ;
 
   return str;
 }
@@ -985,15 +1119,21 @@ QString MainWindow::saveGeneralSettings()
 
   \return status of the operation
 
-<b>History   :</b>	 26-09-2019mm		created by Michael Moser
+<b>History   :</b>
+26-09-2019mm	created by Michael Moser
+13-05-2020mm  save values m_bar_numerator, m_bar_denominator, m_shortest_note and m_bar_accent
+              allow more values in the list
+
 */
 bool MainWindow::restoreGeneralSettings(QStringList general_list, QString version)
 {
+  int ix = 1;
+
   if(version == "1.0")
   {
-    if(general_list.size() == c_general_settings_v1_0_len)
+    if(general_list.size() >= c_general_settings_v1_0_len)
     {
-      QString item = general_list.at(1);
+      QString item = general_list.at(ix++);
       if(item != "<no file name>")
       {
         m_filename = item;
@@ -1002,7 +1142,7 @@ bool MainWindow::restoreGeneralSettings(QStringList general_list, QString versio
       {
         m_filename = "";
       }
-      item =  general_list.at(2);
+      item =  general_list.at(ix++);
       if(item != "<no midi interface>")
       {
         m_settings.m_midi_out_name = item;
@@ -1011,26 +1151,119 @@ bool MainWindow::restoreGeneralSettings(QStringList general_list, QString versio
       {
         m_settings.m_midi_out_name = "";
       }
-      item =  general_list.at(3);
+      item =  general_list.at(ix++);
         m_settings.m_current_max_channels = item.toInt() ;
       show_hide_channels();
-      item =  general_list.at(4);
+      item =  general_list.at(ix++);
       m_settings.m_BPM  = item.toInt() ;
 
-      double interval = static_cast<double>(m_settings.m_BPM); //Beats per minute
-      interval =  60.0 / interval; // Beats per second
-      interval *= 1000; // Convert to milliseconds
+      item =  general_list.at(ix++);
+      m_settings.m_Staccato = item.toInt() == 1 ? true : false;
+      item =  general_list.at(ix++);
+      m_settings.m_Loop = item.toInt() == 1 ? true : false;
+      item =  general_list.at(ix++);
+      m_settings.m_FirstSegment = item.toLongLong();
+      item =  general_list.at(ix++);
+      m_settings.m_LastSegment = item.toLongLong();
+
+      if(ix < general_list.size())
+      {
+        item =  general_list.at(ix++);
+        m_settings.m_bar_numerator = item.toInt();
+      }
+      else
+      {
+        m_settings.m_bar_numerator = 4;
+      }
+
+      if(ix < general_list.size())
+      {
+        item =  general_list.at(ix++);
+        m_settings.m_bar_denominator = item.toInt();
+      }
+      else
+      {
+        m_settings.m_bar_denominator = 4;
+      }
+
+      if(ix < general_list.size())
+      {
+        item =  general_list.at(ix++);
+        m_settings.m_bar_accent = item.toInt();
+      }
+      else
+      {
+        m_settings.m_bar_accent = 1;
+      }
+      if(ix < general_list.size())
+      {
+        item =  general_list.at(ix++);
+        m_settings.m_shortest_note = item.toInt();
+      }
+      else
+      {
+        m_settings.m_shortest_note = 8;
+      }
+
+
+      double interval = calculate_interval();
+#ifndef QT_NO_DEBUG
+      qDebug("Interval for shortest note = %fms", interval);
+#endif
 
       m_midi_clock_interval = static_cast<int>(interval);
 
-      item =  general_list.at(5);
-      m_settings.m_Staccato = item.toInt() == 1 ? true : false;
-      item =  general_list.at(6);
-      m_settings.m_Loop = item.toInt() == 1 ? true : false;
-      item =  general_list.at(7);
-      m_settings.m_FirstSegment = item.toLongLong();
-      item =  general_list.at(8);
-      m_settings.m_LastSegment = item.toLongLong();
+
+      if(ix < general_list.size())
+      {
+        item =  general_list.at(ix++);
+        m_settings.m_with_interval_variation = item.toInt() == 1 ? true : false;
+      }
+      else
+      {
+        m_settings.m_with_interval_variation = true;
+      }
+
+      if(ix < general_list.size())
+      {
+        item =  general_list.at(ix++);
+        m_settings.m_min_interval_variation = item.toInt();
+      }
+      else
+      {
+        m_settings.m_min_interval_variation = 5;
+      }
+
+      if(ix < general_list.size())
+      {
+        item =  general_list.at(ix++);
+        m_settings.m_max_interval_variation = item.toInt();
+      }
+      else
+      {
+        m_settings.m_max_interval_variation = 20;
+      }
+
+      if(ix < general_list.size())
+      {
+        item =  general_list.at(ix++);
+        m_settings.m_with_metronome = item.toInt() == 1 ? true : false;
+      }
+      else
+      {
+        m_settings.m_with_metronome = true;
+      }
+
+      if(ix < general_list.size())
+      {
+        item =  general_list.at(ix++);
+        m_settings.m_metronome_note = item.toInt();
+      }
+      else
+      {
+        m_settings.m_metronome_note = 75;
+      }
+
 
       closeFile();
       return openFile();
@@ -1041,11 +1274,110 @@ bool MainWindow::restoreGeneralSettings(QStringList general_list, QString versio
       return false;
     }
   }
-  else
+ else
   {
     QMessageBox::critical(this, tr("Invalid config file"), QString(tr("version: %1 not supported")).arg(version));
     return false;
   }
+}
+
+double MainWindow::calculate_interval()
+{
+  double interval = static_cast<double>(m_settings.m_BPM); //Beats per minute
+  interval =  60.0 / interval; // Beats per second
+  int fraction = 1;
+  switch (m_settings.m_bar_denominator)
+  {
+    case 4:
+    {
+      // beat is 1/4th
+      switch(m_settings.m_shortest_note)
+      {
+        case 8:
+        {
+          // shortest note is 1/8th
+          fraction = 2;
+          break;
+        }
+        case 16:
+        {
+          // shortest note is 1/16th
+          fraction = 4;
+          break;
+        }
+        case 32:
+        {
+          // shortest note is 1/32th
+          fraction = 8;
+          break;
+        }
+        default:
+        {
+          // shortest note is 1/4th => no change to interval
+          fraction = 1;
+          break;
+        }
+      }
+      break;
+    }
+    case 8:
+    {
+      // beat is 1/8th
+      switch(m_settings.m_shortest_note)
+      {
+        case 16:
+        {
+          // shortest note is 1/16th
+          fraction = 2;
+          break;
+        }
+        case 32:
+        {
+          // shortest note is 1/32th
+          fraction = 4;
+          break;
+        }
+        default:
+        {
+          // shortest note is 1/8th => no change to interval
+          fraction = 1;
+          break;
+        }
+      }
+      break;
+    }
+    case 16:
+    {
+      // beat is 1/16th
+      switch(m_settings.m_shortest_note)
+      {
+        case 32:
+        {
+          // shortest note is 1/32th
+          fraction = 2;
+          break;
+        }
+        default:
+        {
+          // shortest note is 1/16th => no change to interval
+          fraction = 1;
+          break;
+        }
+      }
+      break;
+    }
+    case 32:
+    {
+      // beat is 1/32th
+      // shortest note is 1/32th => no change to interval
+      fraction = 1;
+      break;
+    }
+  }
+  interval /= fraction; // interval for shortest note
+  interval *= 1000; // Convert to milliseconds
+
+  return interval;
 }
 
 /*! Restore the channels settings from a QStringList
@@ -1097,7 +1429,24 @@ bool MainWindow::restoreChannelSettings(QString chn_props, qint32 chn_ix, QStrin
 */
 void MainWindow::on_actionSave_Config_triggered()
 {
-  QFile out;
+  if(m_last_config_file.isEmpty())
+  {
+   //  on_actionSave_Config_As_triggered();
+  }
+  else
+  {
+    saveConfigFile(m_last_config_file);
+  }
+}
+
+/*! Handle File -> Save Config As
+
+
+<b>History   :</b>
+14-05-2020mm		created by Michael Moser
+*/
+void MainWindow::on_actionSave_Config_As_triggered()
+{
   QString fileName;
 
   fileName = QFileDialog::getSaveFileName(this, tr("Configuration File"), m_last_config_path, tr("Configurations (*.ini)"));
@@ -1111,15 +1460,32 @@ void MainWindow::on_actionSave_Config_triggered()
     {
       fileName.append(".ini");
     }
-    out.setFileName(fileName);
-    if(out.open( QIODevice::WriteOnly | QIODevice::Text))
-    {
-      QTextStream os(&out);
 
-      saveConfig(os);
+    QSettings settings;
+    settings.setValue("last_config_file", fileName);
 
-      out.close();
-    }
+    saveConfigFile(fileName);
+  }
+}
+
+/*! Save Config File
+
+
+<b>History   :</b>
+14-05-2020mm		created by Michael Moser
+*/
+void MainWindow::saveConfigFile(QString& fileName)
+{
+  QFile out;
+
+  out.setFileName(fileName);
+  if(out.open( QIODevice::WriteOnly | QIODevice::Text))
+  {
+    QTextStream os(&out);
+
+    saveConfig(os);
+
+    out.close();
   }
 }
 
@@ -1130,10 +1496,29 @@ void MainWindow::on_actionSave_Config_triggered()
 */
 void MainWindow::on_actionOpen_Config_triggered()
 {
-  QFile in;
   QString fileName;
 
   fileName = QFileDialog::getOpenFileName(this, tr("Configuration File"), m_last_config_path, tr("Configurations (*.ini)"));
+
+  if(!fileName.isEmpty())
+  {
+    QSettings settings;
+    settings.setValue("last_config_file", fileName);
+
+    loadConfig(fileName);
+  }
+}
+
+/*! Load a config file
+
+  \param  filename   filename of the config file
+
+<b>History   :</b>
+14-05-2020mm		created by Michael Moser
+*/
+void MainWindow::loadConfig(QString& fileName)
+{
+  QFile in;
 
   if(!fileName.isEmpty())
   {
@@ -1193,9 +1578,11 @@ void MainWindow::on_actionSettings_triggered()
     }
     m_segmentRenderArea->setChannelCount(m_settings.m_current_max_channels);
 
-    double interval = static_cast<double>(m_settings.m_BPM); //Beats per minute
-    interval =  60.0 / interval; // Beats per second
-    interval *= 1000; // Convert to milliseconds
+    double interval = calculate_interval();
+
+#ifndef QT_NO_DEBUG
+      qDebug("Interval for shortest note = %fms", interval);
+#endif
 
     m_midi_clock_interval = static_cast<int>(interval);
 
@@ -1384,4 +1771,6 @@ void MainWindow::updateStatus(QMediaRecorder::Status status)
     ui->statusbar->showMessage(statusMessage);
   }
 }
+
+
 

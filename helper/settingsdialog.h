@@ -56,8 +56,11 @@ private slots:
   void on_set_last_segment_Btn_clicked();
   void on_set_first_segment_Btn_clicked();
   void on_channels_spinBox_valueChanged(int );
+  void on_Numerator_spinBox_valueChanged(int arg1);
+  void on_Denominator_comboBox_currentIndexChanged(const QString &arg1);
 
 private:
+  void initialize_shortestNote_comboBox(int denominator);
 
   Ui::CSettingsDialog *ui;
 

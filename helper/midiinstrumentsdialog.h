@@ -33,10 +33,12 @@ GUI class for MIDI instruments setup dialog
 
 #include <QDialog>
 #include <QComboBox>
+#include <QDialogButtonBox>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QLabel>
 
-namespace Ui {
-class CMIDIInstrumentsDialog;
-}
+
 
 class CMIDIInstrumentsDialog : public QDialog
 {
@@ -45,18 +47,23 @@ class CMIDIInstrumentsDialog : public QDialog
 public:
   explicit CMIDIInstrumentsDialog(QWidget *parent = nullptr);
   ~CMIDIInstrumentsDialog();
-  void setupMIDI_Instruments();
   void setMIDI_Instruments(qint32 *midi_instruments, qint32 size);
   void getMIDI_Instruments(qint32 *midi_instruments, qint32 size);
 
 private:
-  Ui::CMIDIInstrumentsDialog *ui;
 
   // constants
   static const quint8 c_max_midi_voices = 16;         /*!< maximum MIDI voices defined by MIDI spec */
 
-  QComboBox   *m_midi_instruments[c_max_midi_voices]; /*!< QComboBox for each MIDI voice */
+//  QComboBox   *m_midi_instruments[c_max_midi_voices]; /*!< QComboBox for each MIDI voice */
 
+  QDialogButtonBox *buttonBox;
+  QLabel *header1;
+  QLabel *header2;
+  QHBoxLayout *horizontalLayout1;
+  QLabel *m_midi_instruments_label[c_max_midi_voices];
+  QComboBox *m_midi_instruments[c_max_midi_voices];     /*!< QComboBox for each MIDI voice */
+  QHBoxLayout *horizontalLayout[c_max_midi_voices];
 
   /*! General MIDI instrument names
    */

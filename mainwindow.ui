@@ -706,6 +706,7 @@
     <addaction name="separator"/>
     <addaction name="actionOpen_Config"/>
     <addaction name="actionSave_Config"/>
+    <addaction name="actionSave_Config_As"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -756,6 +757,11 @@
   <action name="actionScale_Settings">
    <property name="text">
     <string>Scale Settings</string>
+   </property>
+  </action>
+  <action name="actionSave_Config_As">
+   <property name="text">
+    <string>Save Config As</string>
    </property>
   </action>
  </widget>

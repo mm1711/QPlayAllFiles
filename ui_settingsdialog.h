@@ -39,7 +39,27 @@ public:
     QHBoxLayout *horizontalLayout_12;
     QLabel *label_11;
     QLineEdit *BPM_lineEdit;
+    QLabel *label_3;
+    QSpinBox *Numerator_spinBox;
+    QLabel *label_10;
+    QComboBox *Denominator_comboBox;
+    QLabel *label_12;
+    QSpinBox *Accent_spinBox;
+    QLabel *label_13;
+    QLabel *label_14;
+    QComboBox *shortestNote_comboBox;
     QSpacerItem *horizontalSpacer_7;
+    QHBoxLayout *horizontalLayout_8;
+    QCheckBox *intervalVariation_checkBox;
+    QLabel *label_15;
+    QSpinBox *minIntervalVariation_spinBox;
+    QLabel *label_16;
+    QSpinBox *maxIntervalVariation_spinBox;
+    QLabel *label_17;
+    QSpacerItem *horizontalSpacer_3;
+    QCheckBox *metronome_checkBox;
+    QSpinBox *metronom_spinBox;
+    QSpacerItem *horizontalSpacer;
     QHBoxLayout *horizontalLayout_6;
     QCheckBox *staccato_checkBox;
     QSpacerItem *horizontalSpacer_5;
@@ -78,7 +98,7 @@ public:
     {
         if (CSettingsDialog->objectName().isEmpty())
             CSettingsDialog->setObjectName(QString::fromUtf8("CSettingsDialog"));
-        CSettingsDialog->resize(774, 508);
+        CSettingsDialog->resize(774, 502);
         layoutWidget = new QWidget(CSettingsDialog);
         layoutWidget->setObjectName(QString::fromUtf8("layoutWidget"));
         layoutWidget->setGeometry(QRect(10, 10, 751, 481));
@@ -131,12 +151,134 @@ public:
 
         horizontalLayout_12->addWidget(BPM_lineEdit);
 
+        label_3 = new QLabel(layoutWidget);
+        label_3->setObjectName(QString::fromUtf8("label_3"));
+
+        horizontalLayout_12->addWidget(label_3);
+
+        Numerator_spinBox = new QSpinBox(layoutWidget);
+        Numerator_spinBox->setObjectName(QString::fromUtf8("Numerator_spinBox"));
+        Numerator_spinBox->setMinimum(1);
+        Numerator_spinBox->setMaximum(16);
+        Numerator_spinBox->setValue(4);
+
+        horizontalLayout_12->addWidget(Numerator_spinBox);
+
+        label_10 = new QLabel(layoutWidget);
+        label_10->setObjectName(QString::fromUtf8("label_10"));
+
+        horizontalLayout_12->addWidget(label_10);
+
+        Denominator_comboBox = new QComboBox(layoutWidget);
+        Denominator_comboBox->setObjectName(QString::fromUtf8("Denominator_comboBox"));
+
+        horizontalLayout_12->addWidget(Denominator_comboBox);
+
+        label_12 = new QLabel(layoutWidget);
+        label_12->setObjectName(QString::fromUtf8("label_12"));
+
+        horizontalLayout_12->addWidget(label_12);
+
+        Accent_spinBox = new QSpinBox(layoutWidget);
+        Accent_spinBox->setObjectName(QString::fromUtf8("Accent_spinBox"));
+        Accent_spinBox->setMinimum(1);
+        Accent_spinBox->setMaximum(32);
+
+        horizontalLayout_12->addWidget(Accent_spinBox);
+
+        label_13 = new QLabel(layoutWidget);
+        label_13->setObjectName(QString::fromUtf8("label_13"));
+        label_13->setMinimumSize(QSize(95, 0));
+        label_13->setTextFormat(Qt::PlainText);
+
+        horizontalLayout_12->addWidget(label_13);
+
+        label_14 = new QLabel(layoutWidget);
+        label_14->setObjectName(QString::fromUtf8("label_14"));
+
+        horizontalLayout_12->addWidget(label_14);
+
+        shortestNote_comboBox = new QComboBox(layoutWidget);
+        shortestNote_comboBox->setObjectName(QString::fromUtf8("shortestNote_comboBox"));
+
+        horizontalLayout_12->addWidget(shortestNote_comboBox);
+
         horizontalSpacer_7 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
         horizontalLayout_12->addItem(horizontalSpacer_7);
 
 
         verticalLayout->addLayout(horizontalLayout_12);
+
+        horizontalLayout_8 = new QHBoxLayout();
+        horizontalLayout_8->setObjectName(QString::fromUtf8("horizontalLayout_8"));
+        intervalVariation_checkBox = new QCheckBox(layoutWidget);
+        intervalVariation_checkBox->setObjectName(QString::fromUtf8("intervalVariation_checkBox"));
+        intervalVariation_checkBox->setLayoutDirection(Qt::RightToLeft);
+        intervalVariation_checkBox->setChecked(true);
+
+        horizontalLayout_8->addWidget(intervalVariation_checkBox);
+
+        label_15 = new QLabel(layoutWidget);
+        label_15->setObjectName(QString::fromUtf8("label_15"));
+
+        horizontalLayout_8->addWidget(label_15);
+
+        minIntervalVariation_spinBox = new QSpinBox(layoutWidget);
+        minIntervalVariation_spinBox->setObjectName(QString::fromUtf8("minIntervalVariation_spinBox"));
+        minIntervalVariation_spinBox->setMaximum(10);
+        minIntervalVariation_spinBox->setValue(5);
+
+        horizontalLayout_8->addWidget(minIntervalVariation_spinBox);
+
+        label_16 = new QLabel(layoutWidget);
+        label_16->setObjectName(QString::fromUtf8("label_16"));
+
+        horizontalLayout_8->addWidget(label_16);
+
+        maxIntervalVariation_spinBox = new QSpinBox(layoutWidget);
+        maxIntervalVariation_spinBox->setObjectName(QString::fromUtf8("maxIntervalVariation_spinBox"));
+        maxIntervalVariation_spinBox->setMinimum(10);
+        maxIntervalVariation_spinBox->setMaximum(100);
+        maxIntervalVariation_spinBox->setValue(20);
+
+        horizontalLayout_8->addWidget(maxIntervalVariation_spinBox);
+
+        label_17 = new QLabel(layoutWidget);
+        label_17->setObjectName(QString::fromUtf8("label_17"));
+
+        horizontalLayout_8->addWidget(label_17);
+
+        horizontalSpacer_3 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_8->addItem(horizontalSpacer_3);
+
+        metronome_checkBox = new QCheckBox(layoutWidget);
+        metronome_checkBox->setObjectName(QString::fromUtf8("metronome_checkBox"));
+        metronome_checkBox->setLayoutDirection(Qt::RightToLeft);
+        metronome_checkBox->setChecked(true);
+
+        horizontalLayout_8->addWidget(metronome_checkBox);
+
+        metronom_spinBox = new QSpinBox(layoutWidget);
+        metronom_spinBox->setObjectName(QString::fromUtf8("metronom_spinBox"));
+        QSizePolicy sizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+        sizePolicy.setHorizontalStretch(0);
+        sizePolicy.setVerticalStretch(0);
+        sizePolicy.setHeightForWidth(metronom_spinBox->sizePolicy().hasHeightForWidth());
+        metronom_spinBox->setSizePolicy(sizePolicy);
+        metronom_spinBox->setMinimum(35);
+        metronom_spinBox->setMaximum(81);
+        metronom_spinBox->setValue(75);
+
+        horizontalLayout_8->addWidget(metronom_spinBox);
+
+        horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_8->addItem(horizontalSpacer);
+
+
+        verticalLayout->addLayout(horizontalLayout_8);
 
         horizontalLayout_6 = new QHBoxLayout();
         horizontalLayout_6->setObjectName(QString::fromUtf8("horizontalLayout_6"));
@@ -364,6 +506,16 @@ public:
         BPM_lineEdit->setToolTip(QCoreApplication::translate("CSettingsDialog", "Start Segment to Play", nullptr));
 #endif // QT_CONFIG(tooltip)
         BPM_lineEdit->setText(QCoreApplication::translate("CSettingsDialog", "180", nullptr));
+        label_3->setText(QCoreApplication::translate("CSettingsDialog", "Bar", nullptr));
+        label_10->setText(QCoreApplication::translate("CSettingsDialog", "/", nullptr));
+        label_12->setText(QCoreApplication::translate("CSettingsDialog", "Accent", nullptr));
+        label_13->setText(QCoreApplication::translate("CSettingsDialog", "Shortest 1", nullptr));
+        label_14->setText(QCoreApplication::translate("CSettingsDialog", " / ", nullptr));
+        intervalVariation_checkBox->setText(QCoreApplication::translate("CSettingsDialog", "Interval Variation", nullptr));
+        label_15->setText(QCoreApplication::translate("CSettingsDialog", "Min.", nullptr));
+        label_16->setText(QCoreApplication::translate("CSettingsDialog", "Max", nullptr));
+        label_17->setText(QCoreApplication::translate("CSettingsDialog", "ms", nullptr));
+        metronome_checkBox->setText(QCoreApplication::translate("CSettingsDialog", "Metronome", nullptr));
 #if QT_CONFIG(tooltip)
         staccato_checkBox->setToolTip(QCoreApplication::translate("CSettingsDialog", "Active: note off after each note", nullptr));
 #endif // QT_CONFIG(tooltip)

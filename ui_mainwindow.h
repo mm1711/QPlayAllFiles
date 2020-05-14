@@ -42,6 +42,7 @@ public:
     QAction *actionSettings;
     QAction *actionMIDI_Instruments;
     QAction *actionScale_Settings;
+    QAction *actionSave_Config_As;
     QWidget *centralwidget;
     QScrollArea *scrollArea;
     QWidget *scrollAreaWidgetContents;
@@ -114,6 +115,8 @@ public:
         actionMIDI_Instruments->setObjectName(QString::fromUtf8("actionMIDI_Instruments"));
         actionScale_Settings = new QAction(MainWindow);
         actionScale_Settings->setObjectName(QString::fromUtf8("actionScale_Settings"));
+        actionSave_Config_As = new QAction(MainWindow);
+        actionSave_Config_As->setObjectName(QString::fromUtf8("actionSave_Config_As"));
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
         scrollArea = new QScrollArea(centralwidget);
@@ -396,6 +399,7 @@ public:
         menuFile->addSeparator();
         menuFile->addAction(actionOpen_Config);
         menuFile->addAction(actionSave_Config);
+        menuFile->addAction(actionSave_Config_As);
         menuSettings->addAction(actionSettings);
         menuSettings->addAction(actionMIDI_Instruments);
 
@@ -415,6 +419,7 @@ public:
         actionSettings->setText(QCoreApplication::translate("MainWindow", "Settings", nullptr));
         actionMIDI_Instruments->setText(QCoreApplication::translate("MainWindow", "MIDI Instruments", nullptr));
         actionScale_Settings->setText(QCoreApplication::translate("MainWindow", "Scale Settings", nullptr));
+        actionSave_Config_As->setText(QCoreApplication::translate("MainWindow", "Save Config As", nullptr));
         label_6->setText(QCoreApplication::translate("MainWindow", "Voice", nullptr));
         label_13->setText(QCoreApplication::translate("MainWindow", "Note", nullptr));
         label_5->setText(QCoreApplication::translate("MainWindow", "Velocity", nullptr));

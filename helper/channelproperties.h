@@ -65,15 +65,6 @@ public:
   QString toString();
   void    fromString(QString settings);
 
-private:
-  Ui::CChannelProperties *ui;
-
-  bool    m_channel_state;   /*!< Channel state: true = note is currently played  false = note is not currently not played */
-
-// constants
-  const QString c_prop_id = "chn_props;";     /*!< identifier for channels settings in ini file */
-  const qint32  c_chn_props_v1_0_len = 5;     /*!< V1.0 channels settings elements count */
-
   //! Constants for MIDI volume (note: in MIDI spec 'volume' is called 'velocity')
   static const quint8 c_velocity_pppp = 8;
   static const quint8 c_velocity_ppp  = 20;
@@ -85,6 +76,17 @@ private:
   static const quint8 c_velocity_ff   = 96;
   static const quint8 c_velocity_fff  = 112;
   static const quint8 c_velocity_ffff = 127;
+
+
+
+private:
+  Ui::CChannelProperties *ui;
+
+  bool    m_channel_state;   /*!< Channel state: true = note is currently played  false = note is not currently not played */
+
+// constants
+  const QString c_prop_id = "chn_props;";     /*!< identifier for channels settings in ini file */
+  const qint32  c_chn_props_v1_0_len = 5;     /*!< V1.0 channels settings elements count */
 
 
   /*! Volume names for channels_velocity_comboBox
