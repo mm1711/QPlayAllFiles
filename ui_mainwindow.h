@@ -91,7 +91,7 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
-        MainWindow->resize(1200, 719);
+        MainWindow->resize(1268, 719);
         QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
@@ -121,24 +121,24 @@ public:
         centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
         scrollArea = new QScrollArea(centralwidget);
         scrollArea->setObjectName(QString::fromUtf8("scrollArea"));
-        scrollArea->setGeometry(QRect(0, 10, 1191, 661));
+        scrollArea->setGeometry(QRect(0, 10, 1251, 661));
         scrollArea->setMaximumSize(QSize(16777215, 16777215));
         scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
         scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
         scrollArea->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName(QString::fromUtf8("scrollAreaWidgetContents"));
-        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 1189, 659));
+        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 1249, 659));
         channelWidget = new QWidget(scrollAreaWidgetContents);
         channelWidget->setObjectName(QString::fromUtf8("channelWidget"));
-        channelWidget->setGeometry(QRect(0, 9, 341, 541));
+        channelWidget->setGeometry(QRect(0, 9, 450, 541));
         sizePolicy.setHeightForWidth(channelWidget->sizePolicy().hasHeightForWidth());
         channelWidget->setSizePolicy(sizePolicy);
-        channelWidget->setMinimumSize(QSize(200, 500));
+        channelWidget->setMinimumSize(QSize(450, 500));
         channelWidget->setMaximumSize(QSize(16777215, 16777215));
         layoutWidget = new QWidget(channelWidget);
         layoutWidget->setObjectName(QString::fromUtf8("layoutWidget"));
-        layoutWidget->setGeometry(QRect(0, 10, 331, 32));
+        layoutWidget->setGeometry(QRect(0, 0, 411, 32));
         horizontalLayout_2 = new QHBoxLayout(layoutWidget);
         horizontalLayout_2->setObjectName(QString::fromUtf8("horizontalLayout_2"));
         horizontalLayout_2->setContentsMargins(0, 0, 0, 0);
@@ -169,7 +169,7 @@ public:
 
         frame = new QFrame(scrollAreaWidgetContents);
         frame->setObjectName(QString::fromUtf8("frame"));
-        frame->setGeometry(QRect(350, 0, 821, 61));
+        frame->setGeometry(QRect(420, 0, 821, 61));
         frame->setFrameShape(QFrame::StyledPanel);
         frame->setFrameShadow(QFrame::Raised);
         layoutWidget1 = new QWidget(frame);
@@ -361,7 +361,7 @@ public:
 
         segmentsWidget = new QWidget(scrollAreaWidgetContents);
         segmentsWidget->setObjectName(QString::fromUtf8("segmentsWidget"));
-        segmentsWidget->setGeometry(QRect(351, 70, 819, 500));
+        segmentsWidget->setGeometry(QRect(420, 70, 811, 500));
         sizePolicy.setHeightForWidth(segmentsWidget->sizePolicy().hasHeightForWidth());
         segmentsWidget->setSizePolicy(sizePolicy);
         segmentsWidget->setMinimumSize(QSize(0, 500));
@@ -382,7 +382,7 @@ public:
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName(QString::fromUtf8("menubar"));
-        menubar->setGeometry(QRect(0, 0, 1200, 21));
+        menubar->setGeometry(QRect(0, 0, 1268, 21));
         menuFile = new QMenu(menubar);
         menuFile->setObjectName(QString::fromUtf8("menuFile"));
         menuSettings = new QMenu(menubar);

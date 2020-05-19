@@ -62,7 +62,7 @@ CMIDIInstrumentsDialog::CMIDIInstrumentsDialog(QWidget *parent) :
     horizontalLayout[ix] = new QHBoxLayout;
     horizontalLayout[ix]->setContentsMargins(0, 0, 0, 0);
     m_midi_instruments_label[ix] = new QLabel;
-    m_midi_instruments_label[ix]->setNum(ix);
+    m_midi_instruments_label[ix]->setNum(ix+1);
     horizontalLayout[ix]->addWidget(m_midi_instruments_label[ix]);
     m_midi_instruments[ix] = new QComboBox;
     m_midi_instruments[ix]->addItems(c_general_midi);

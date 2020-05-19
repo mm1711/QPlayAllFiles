@@ -39,7 +39,6 @@ HEADERS += \
 
 FORMS += \
     helper/channelproperties.ui \
-    helper/settingsdialog.ui \
     mainwindow.ui
 
 # Default rules for deployment.

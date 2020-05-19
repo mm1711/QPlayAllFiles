@@ -64,6 +64,8 @@ public:
   void    setChannelState(bool value) { m_channel_state = value;}
   QString toString();
   void    fromString(QString settings);
+  QStringList getPercussionInstruments() { return c_percussion_names; }
+  qint32 getPercussionStartIndex() { return c_percussion_name_start_index; }
 
   //! Constants for MIDI volume (note: in MIDI spec 'volume' is called 'velocity')
   static const quint8 c_velocity_pppp = 8;
@@ -78,6 +80,12 @@ public:
   static const quint8 c_velocity_ffff = 127;
 
 
+
+
+
+
+private slots:
+  void on_channel_voice_spinBox_valueChanged(int arg1);
 
 private:
   Ui::CChannelProperties *ui;
@@ -129,6 +137,62 @@ private:
     "C8", "C#/Db8", "D8", "D#/Eb8", "E8", "F8", "F#/Gb8", "G8", "G#/Ab8", "A8", "A#/Bb8", "B8",
     "C9", "C#/Db9", "D9", "D#/Eb9", "E9", "F9", "F#/Gb9", "G9",
     "No Note"
+  };
+
+  /*! General MIDI percussion instrument start index
+   */
+  const quint8 c_percussion_name_start_index = 35;
+
+  /*! General MIDI percussion instrument names
+   */
+  QStringList c_percussion_names ={
+  "Bass Drum 2",		 				// 35
+  "Bass Drum 1",            // 36
+  "Side Stick",             // 37
+  "Snare Drum 1",           // 38
+  "Hand Clap",              // 39
+  "Snare Drum 2",           // 40
+  "Low Tom 2",              // 41
+  "Closed Hi-hat",          // 42
+  "Low Tom 1",              // 43
+  "Pedal Hi-hat",           // 44
+  "Mid Tom 2",              // 45
+  "Open Hi-hat",            // 46
+  "Mid Tom 1",              // 47
+  "High Tom 2",             // 48
+  "Crash Cymbal 1",         // 49
+  "High Tom 1",             // 50
+  "Ride Cymbal 1",          // 51
+  "Chinese Cymbal",         // 52
+  "Ride Bell",              // 53
+  "Tambourine",             // 54
+  "Splash Cymbal",          // 55
+  "Cowbell",                // 56
+  "Crash Cymbal 2",         // 57
+  "Vibra Slap",             // 58
+  "Ride Cymbal 2",          // 59
+  "High Bongo",             // 60
+  "Low Bongo",              // 61
+  "Mute High Conga",        // 62
+  "Open High Conga",        // 63
+  "Low Conga",              // 64
+  "High Timbale",           // 65
+  "Low Timbale",            // 66
+  "High Agogo",             // 67
+  "Low Agogo",              // 68
+  "Cabasa",                 // 69
+  "Maracas",                // 70
+  "Short Whistle",          // 71
+  "Long Whistle",           // 72
+  "Short Guiro",            // 73
+  "Long Guiro",             // 74
+  "Claves",                 // 75
+  "High Wood Block",        // 76
+  "Low Wood Block",         // 77
+  "Mute Cuica",             // 78
+  "Open Cuica",             // 79
+  "Mute Triangle",          // 80
+  "Open Triangle"           // 81
   };
 
 };

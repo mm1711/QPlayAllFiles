@@ -42,6 +42,7 @@ CChannelProperties::CChannelProperties(QWidget *parent) :
   ui->channel_velocity_comboBox->setCurrentIndex(ui->channel_velocity_comboBox->findText(c_velocity_names[6]));
   ui->channel_group_lineEdit->setText("0");
 
+  adjustSize();
 }
 
 CChannelProperties::~CChannelProperties()
@@ -192,10 +193,34 @@ void CChannelProperties::fromString(QString settings)
     QString id = values.at(0) + ";";
     if(id == c_prop_id)
     {
+      int ix = values.at(1).toInt();
       ui->channel_voice_spinBox->setValue(values.at(1).toInt());
-      ui->channel_note_comboBox->setCurrentIndex(values.at(2).toInt());
+      ix = values.at(2).toInt();
+      if(values.at(1).toInt() == 9)
+      {
+        if(ix > c_percussion_name_start_index)
+        {
+          ix -= c_percussion_name_start_index;
+        }
+      }
+      ui->channel_note_comboBox->setCurrentIndex(ix);
+      ix = values.at(3).toInt();
       ui->channel_velocity_comboBox->setCurrentIndex(values.at(3).toInt());
       ui->channel_group_lineEdit->setText(values.at(4));
     }
   }
+}
+
+void CChannelProperties::on_channel_voice_spinBox_valueChanged(int arg1)
+{
+    ui->channel_note_comboBox->clear();
+    if(arg1 == 9)
+    {
+      // percussion
+      ui->channel_note_comboBox->addItems(c_percussion_names);
+    }
+    else
+    {
+      ui->channel_note_comboBox->addItems(c_note_names);
+    }
 }

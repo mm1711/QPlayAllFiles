@@ -98,7 +98,7 @@ private:
   Ui::MainWindow *ui;
 
   // constants
-  const QString version = "0.2";                                  /*!< Application version string */
+  const QString version = "0.3";                                  /*!< Application version string */
   const QString c_settings_version = "version;1.0;";              /*!< identifier for version of ini file */
   static const qint32 c_max_channel_count = 88;                   /*!< maximum channels */
   static const qint32 c_max_visible_segments = 156;               /*!< maximum visible segments */

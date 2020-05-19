@@ -162,6 +162,7 @@ void MainWindow::setupControls()
 
   setupChannels(ui->channelWidget);
 
+  ui->frame->move(ui->channelWidget->width()+10, 0);
   // next 2 lines necessary for scrolling
   ui->scrollArea->setWidgetResizable(false);
   ui->scrollAreaWidgetContents->setGeometry(0,0,
@@ -169,7 +170,8 @@ void MainWindow::setupControls()
                                             ui->channelWidget->size().height()+20);
 
   // Resize widgets
-  ui->segmentsWidget->setGeometry(350, c_channels_y_pos_start+10, 820, m_segmentRenderArea->maximumSize().height());
+//  ui->segmentsWidget->setGeometry(350, c_channels_y_pos_start+10, 820, m_segmentRenderArea->maximumSize().height());
+  ui->segmentsWidget->setGeometry(ui->channelWidget->width()+10, c_channels_y_pos_start+10, 820, m_segmentRenderArea->maximumSize().height());
 }
 
 /*! Setup all channels

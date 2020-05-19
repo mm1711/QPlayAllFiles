@@ -33,19 +33,19 @@ public:
     {
         if (CChannelProperties->objectName().isEmpty())
             CChannelProperties->setObjectName(QString::fromUtf8("CChannelProperties"));
-        CChannelProperties->resize(314, 30);
-        CChannelProperties->setMinimumSize(QSize(0, 0));
+        CChannelProperties->resize(500, 30);
+        CChannelProperties->setMinimumSize(QSize(500, 0));
         CChannelProperties->setMaximumSize(QSize(16777215, 16777215));
         layoutWidget = new QWidget(CChannelProperties);
         layoutWidget->setObjectName(QString::fromUtf8("layoutWidget"));
-        layoutWidget->setGeometry(QRect(0, 0, 320, 31));
+        layoutWidget->setGeometry(QRect(0, 0, 431, 31));
         horizontalLayout = new QHBoxLayout(layoutWidget);
         horizontalLayout->setSpacing(6);
         horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
         horizontalLayout->setContentsMargins(0, 0, 0, 0);
         channel_voice_spinBox = new QSpinBox(layoutWidget);
         channel_voice_spinBox->setObjectName(QString::fromUtf8("channel_voice_spinBox"));
-        channel_voice_spinBox->setMinimumSize(QSize(40, 0));
+        channel_voice_spinBox->setMinimumSize(QSize(60, 0));
         channel_voice_spinBox->setMaximumSize(QSize(60, 16777215));
         channel_voice_spinBox->setMaximum(15);
 
@@ -53,7 +53,7 @@ public:
 
         channel_note_comboBox = new QComboBox(layoutWidget);
         channel_note_comboBox->setObjectName(QString::fromUtf8("channel_note_comboBox"));
-        channel_note_comboBox->setMinimumSize(QSize(120, 0));
+        channel_note_comboBox->setMinimumSize(QSize(220, 0));
         channel_note_comboBox->setMaximumSize(QSize(16777215, 16777215));
         channel_note_comboBox->setEditable(true);
 
@@ -61,8 +61,13 @@ public:
 
         channel_velocity_comboBox = new QComboBox(layoutWidget);
         channel_velocity_comboBox->setObjectName(QString::fromUtf8("channel_velocity_comboBox"));
-        channel_velocity_comboBox->setMinimumSize(QSize(95, 0));
-        channel_velocity_comboBox->setMaximumSize(QSize(120, 16777215));
+        QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        sizePolicy.setHorizontalStretch(0);
+        sizePolicy.setVerticalStretch(0);
+        sizePolicy.setHeightForWidth(channel_velocity_comboBox->sizePolicy().hasHeightForWidth());
+        channel_velocity_comboBox->setSizePolicy(sizePolicy);
+        channel_velocity_comboBox->setMinimumSize(QSize(90, 0));
+        channel_velocity_comboBox->setMaximumSize(QSize(90, 16777215));
         channel_velocity_comboBox->setEditable(true);
         channel_velocity_comboBox->setMaxVisibleItems(20);
 

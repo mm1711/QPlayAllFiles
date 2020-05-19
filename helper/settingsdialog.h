@@ -33,8 +33,19 @@ GUI class for application settings dialog
 #include <QDialog>
 #include <QComboBox>
 #include <QAudioRecorder>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QSpacerItem>
+#include <QtWidgets/QSpinBox>
+#include <QtWidgets/QVBoxLayout>
+
 #include "../helper/settings.h"
 #include "../QMidi/src/QMidiOut.h"
+#include "../helper/channelproperties.h"
 
 namespace Ui {
 class CSettingsDialog;
@@ -63,6 +74,47 @@ private:
   void initialize_shortestNote_comboBox(int denominator);
 
   Ui::CSettingsDialog *ui;
+
+  QLabel *label_channel;
+  QSpinBox *channels_spinBox;
+  QLabel *label_BPM;
+  QLineEdit *BPM_lineEdit;
+  QLabel *label_numerator;
+  QSpinBox *Numerator_spinBox;
+  QComboBox *Denominator_comboBox;
+  QLabel *label_accent;
+  QSpinBox *Accent_spinBox;
+  QLabel *label_shortest;
+  QComboBox *shortestNote_comboBox;
+  QCheckBox *intervalVariation_checkBox;
+  QLabel *label_min_interval;
+  QSpinBox *minIntervalVariation_spinBox;
+  QLabel *label_max_interval;
+  QSpinBox *maxIntervalVariation_spinBox;
+  QLabel *label_ms;
+  QCheckBox *metronome_checkBox;
+  QComboBox *metronomInstrument_comboBox;
+  QCheckBox *staccato_checkBox;
+  QCheckBox *loop_checkBox;
+  QLabel *label_firstSegment;
+  QLineEdit *firstSegment_lineEdit;
+  QPushButton *set_first_segment_Btn;
+  QLabel *label_lastSegment;
+  QLineEdit *lastSegment_lineEdit;
+  QPushButton *set_last_segment_Btn;
+  QLabel *label_audio_interface;
+  QComboBox *audio_Interface_comboBox;
+  QLabel *label_audio_codec;
+  QComboBox *audio_codec_comboBox;
+  QLabel *label_audio_sampling_rate;
+  QComboBox *audio_sampling_rate_comboBox;
+  QLabel *label_audio_container;
+  QComboBox *audio_container_comboBox;
+  QLabel *label_midi_interface;
+  QComboBox *MIDI_Interface_comboBox;
+  QDialogButtonBox *buttonBox;
+
+
 
   QMidiOut *m_midi_out;
   QString m_midi_name;

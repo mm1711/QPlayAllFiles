@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
+    <width>1268</width>
     <height>719</height>
    </rect>
   </property>
@@ -37,7 +37,7 @@
      <rect>
       <x>0</x>
       <y>10</y>
-      <width>1191</width>
+      <width>1251</width>
       <height>661</height>
      </rect>
     </property>
@@ -61,7 +61,7 @@
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>1189</width>
+       <width>1249</width>
        <height>659</height>
       </rect>
      </property>
@@ -70,7 +70,7 @@
        <rect>
         <x>0</x>
         <y>9</y>
-        <width>341</width>
+        <width>450</width>
         <height>541</height>
        </rect>
       </property>
@@ -82,7 +82,7 @@
       </property>
       <property name="minimumSize">
        <size>
-        <width>200</width>
+        <width>450</width>
         <height>500</height>
        </size>
       </property>
@@ -96,8 +96,8 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>10</y>
-         <width>331</width>
+         <y>0</y>
+         <width>411</width>
          <height>32</height>
         </rect>
        </property>
@@ -163,7 +163,7 @@
      <widget class="QFrame" name="frame">
       <property name="geometry">
        <rect>
-        <x>350</x>
+        <x>420</x>
         <y>0</y>
         <width>821</width>
         <height>61</height>
@@ -599,9 +599,9 @@
      <widget class="QWidget" name="segmentsWidget" native="true">
       <property name="geometry">
        <rect>
-        <x>351</x>
+        <x>420</x>
         <y>70</y>
-        <width>819</width>
+        <width>811</width>
         <height>500</height>
        </rect>
       </property>
@@ -693,7 +693,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1200</width>
+     <width>1268</width>
      <height>21</height>
     </rect>
    </property>

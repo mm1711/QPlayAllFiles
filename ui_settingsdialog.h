@@ -59,6 +59,7 @@ public:
     QSpacerItem *horizontalSpacer_3;
     QCheckBox *metronome_checkBox;
     QSpinBox *metronom_spinBox;
+    QComboBox *metronomInstrument_comboBox;
     QSpacerItem *horizontalSpacer;
     QHBoxLayout *horizontalLayout_6;
     QCheckBox *staccato_checkBox;
@@ -98,10 +99,11 @@ public:
     {
         if (CSettingsDialog->objectName().isEmpty())
             CSettingsDialog->setObjectName(QString::fromUtf8("CSettingsDialog"));
-        CSettingsDialog->resize(774, 502);
+        CSettingsDialog->resize(1000, 502);
+        CSettingsDialog->setMinimumSize(QSize(1000, 0));
         layoutWidget = new QWidget(CSettingsDialog);
         layoutWidget->setObjectName(QString::fromUtf8("layoutWidget"));
-        layoutWidget->setGeometry(QRect(10, 10, 751, 481));
+        layoutWidget->setGeometry(QRect(10, 10, 761, 481));
         verticalLayout_2 = new QVBoxLayout(layoutWidget);
         verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
         verticalLayout_2->setContentsMargins(0, 0, 0, 0);
@@ -272,6 +274,12 @@ public:
         metronom_spinBox->setValue(75);
 
         horizontalLayout_8->addWidget(metronom_spinBox);
+
+        metronomInstrument_comboBox = new QComboBox(layoutWidget);
+        metronomInstrument_comboBox->setObjectName(QString::fromUtf8("metronomInstrument_comboBox"));
+        metronomInstrument_comboBox->setMinimumSize(QSize(220, 0));
+
+        horizontalLayout_8->addWidget(metronomInstrument_comboBox);
 
         horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
