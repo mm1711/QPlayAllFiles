@@ -42,7 +42,7 @@ class CSegmentRenderArea : public QWidget
   Q_OBJECT
 
 public:
-  explicit CSegmentRenderArea(QWidget *parent = nullptr, qint32 _channels = 72);
+  explicit CSegmentRenderArea(QWidget *parent = nullptr, qint32 _channels = 127);
   ~CSegmentRenderArea() override;
 
   QSize minimumSizeHint() const override;
@@ -74,10 +74,9 @@ private:
 
   //constants
   const qint8 c_channel_width = 4;                      /*!< Width of one channel */
-  const qint8 c_channel_height = 21;                    /*!< Height of one channel */
+  const qint8 c_channel_height = 26;                    /*!< Height of one channel */
 
   const qint32 c_max_segment_render_width   = 1000;     /*!< Default maximum widget width */  // 624
-  const qint32 c_max_segment_render_height  = 2300;     /*!< Default maximum widget height (sufficient for 72 channels) */ //1554
 };
 
 #endif // SEGMENTRENDERAREA_H

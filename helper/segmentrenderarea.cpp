@@ -33,12 +33,6 @@ GUI class displaying the bit stream graphically
 CSegmentRenderArea::CSegmentRenderArea(QWidget *parent, qint32 _channels) :
   QWidget(parent)
 {
-  m_max_segment_render_width = c_max_segment_render_width;
-  m_max_segment_render_height = c_max_segment_render_height;
-
-  setMinimumSize(QSize(m_max_segment_render_width, m_max_segment_render_height));
-  setMaximumSize(QSize(m_max_segment_render_width, m_max_segment_render_height));
-
   QPalette palette;
   QBrush _brush(QColor(255, 255, 255, 255));
   _brush.setStyle(Qt::SolidPattern);
@@ -54,10 +48,15 @@ CSegmentRenderArea::CSegmentRenderArea(QWidget *parent, qint32 _channels) :
 
   setAutoFillBackground(true);
 
+  m_channel_count = _channels;
+
+  m_max_segment_render_width = c_max_segment_render_width;
+  m_max_segment_render_height = c_channel_height* (m_channel_count + 1);
+
+  setMinimumSize(QSize(m_max_segment_render_width, m_max_segment_render_height));
+  setMaximumSize(QSize(m_max_segment_render_width, m_max_segment_render_height));
 
   m_max_visible_segments = m_max_segment_render_width / c_channel_width;
-
-  m_channel_count = _channels;
 
   m_start_segment = 0;
   m_end_segment = m_max_visible_segments;
@@ -111,8 +110,8 @@ QSize CSegmentRenderArea::maximumSize() const
 */
 void CSegmentRenderArea::setChannelHeight(qint8 height)
 {
-  m_channel_height = height + 1;
-  m_max_segment_render_height = m_channel_count * m_channel_height;
+  m_channel_height = height;
+  m_max_segment_render_height = (m_channel_count + 1) * m_channel_height;
 
   setMinimumSize(QSize(m_max_segment_render_width, m_max_segment_render_height));
   setMaximumSize(QSize(m_max_segment_render_width, m_max_segment_render_height));
@@ -210,7 +209,7 @@ void CSegmentRenderArea::paintEvent(QPaintEvent * /* event */)
     painter.save();
 
     qint32 x_pos = 0;
-    qint32 y_pos = 0;
+    qint32 y_pos = m_channel_height;
 
     for (qint32 segment = m_start_segment; segment < m_end_segment; segment++)
     {
@@ -238,9 +237,13 @@ void CSegmentRenderArea::paintEvent(QPaintEvent * /* event */)
         y_pos += m_channel_height;
       }
       x_pos += c_channel_width;
-      y_pos = 0;
+      y_pos = m_channel_height;
     }
-
+/*
+    QPen pen_frame(Qt::green, c_channel_width, Qt::DashDotLine, Qt::RoundCap, Qt::RoundJoin);
+    painter.setPen(pen_frame);
+    painter.drawRect(0, 0, width(), height());
+*/
     painter.restore();
   }
 }

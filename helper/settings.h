@@ -38,6 +38,7 @@ class CSettings
 {
 public:
   CSettings();
+  void resetSettings();
 
   qint32  m_current_max_channels = 13;  /*!< Channel count */
   qint32  m_BPM = 120;                  /*!< Beats Per Minute */
@@ -58,7 +59,7 @@ public:
   qint32  m_min_interval_variation = 5; /*!< Minimum variation of MIDI clock interval  */
   qint32  m_max_interval_variation = 20; /*!< Maximum variation of MIDI clock interval  */
   bool    m_with_metronome = 1;         /*!< With metronome channel  */
-  qint32  m_metronome_note = 35;        /*!< Metronome note (= instrument)  */
+  qint32  m_metronome_note = 40;        /*!< Metronome note (= instrument)  */
 };
 
 #endif // CSETTINGS_H

@@ -33,3 +33,27 @@ CSettings::CSettings()
 {
 
 }
+
+void CSettings::resetSettings()
+{
+  m_current_max_channels = 13;
+  m_BPM = 120;
+  m_Staccato = 0;
+  m_Loop = 0;
+  m_FirstSegment = 0;
+  m_LastSegment = 0;
+  m_audio_interface;
+  m_audio_codec;
+  m_audio_container;
+  m_audio_sample_rate;
+  m_midi_out_name;
+  m_bar_numerator = 4;
+  m_bar_denominator = 4;
+  m_bar_accent = 1;
+  m_shortest_note = 4;
+  m_with_interval_variation = 1;
+  m_min_interval_variation = 5;
+  m_max_interval_variation = 20;
+  m_with_metronome = 1;
+  m_metronome_note = 40;
+}
