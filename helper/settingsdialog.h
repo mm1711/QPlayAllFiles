@@ -66,7 +66,7 @@ public:
 private slots:
   void on_set_last_segment_Btn_clicked();
   void on_set_first_segment_Btn_clicked();
-  void on_channels_spinBox_valueChanged(int );
+  void on_channels_spinBox_valueChanged(int chn_count);
   void on_Numerator_spinBox_valueChanged(int arg1);
   void on_Denominator_comboBox_currentIndexChanged(const QString &arg1);
 

@@ -32,40 +32,46 @@ Widget code for handling the channel properties
 #define CHANNELPROPERTIES_H
 
 #include <QWidget>
+#include <QLabel>
 #include <QComboBox>
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QStringList>
+#include <QHBoxLayout>
+#include <QGridLayout>
 
-namespace Ui {
-class CChannelProperties;
-}
 
 class CChannelProperties : public QWidget
 {
   Q_OBJECT
 
 public:
-  explicit CChannelProperties(QWidget *parent = nullptr);
+  CChannelProperties(QWidget *parent = nullptr, qint32 max_channels = c_max_channel_count );
   ~CChannelProperties();
   QString getPropID() { return c_prop_id; }
   qint32  getPropLength() { return c_chn_props_v1_0_len; }
-  qint32  getCurrentVoiceIndex();
-  void    setVoiceIndex(qint32 index);
-  qint32  getCurrentVelocityIndex();
-  qint32  getCurrentVelocityValue();
-  void    setVelocityIndex(qint32 index);
-  qint32  getCurrentNoteIndex();
-  QString getCurrentNoteText();
-  void    setNoteIndex(qint32 index);
-  qint32  getCurrentGroup();
-  void    setGroup(qint32 group);
-  bool    getChannelState() { return m_channel_state;}
-  void    setChannelState(bool value) { m_channel_state = value;}
-  QString toString();
-  void    fromString(QString settings);
+  qint32  getCurrentVoiceIndex(qint32 chn);
+  void    setVoiceIndex(qint32 chn, qint32 index);
+  qint32  getCurrentVelocityIndex(qint32 chn);
+  qint32  getCurrentVelocityValue(qint32 chn);
+  void    setVelocityIndex(qint32 chn, qint32 index);
+  qint32  getCurrentNoteIndex(qint32 chn);
+  QString getCurrentNoteText(qint32 chn);
+  void    setNoteIndex(qint32 chn, qint32 index);
+  qint32  getCurrentGroup(qint32 chn);
+  void    setGroup(qint32 chn, qint32 group);
+  bool    getChannelState(qint32 chn) { return m_channel_state[chn];}
+  void    setChannelState(qint32 chn, bool value) { m_channel_state[chn] = value;}
+  QString toString(qint32 chn);
+  void    fromString(qint32 chn, QString settings);
   QStringList getPercussionInstruments() { return c_percussion_names; }
   qint32 getPercussionStartIndex() { return c_percussion_name_start_index; }
+  void    setChannelCount(qint32 chn_cnt);
+  qint32  getChannelCount() { return m_channel_count; }
+  void    show( qint32 chn );
+  void    hide( qint32 chn );
+  qint8   getChannelHeight();
+  void    resetChannels();
 
   //! Constants for MIDI volume (note: in MIDI spec 'volume' is called 'velocity')
   static const quint8 c_velocity_pppp = 8;
@@ -78,24 +84,31 @@ public:
   static const quint8 c_velocity_ff   = 96;
   static const quint8 c_velocity_fff  = 112;
   static const quint8 c_velocity_ffff = 127;
-
-
-
-
-
+  static const qint32 c_max_channel_count = 127;  /*!< maximum channels */
 
 private slots:
   void on_channel_voice_spinBox_valueChanged(int arg1);
 
 private:
-  Ui::CChannelProperties *ui;
-
-  bool    m_channel_state;   /*!< Channel state: true = note is currently played  false = note is not currently not played */
-
-// constants
+  // constants
   const QString c_prop_id = "chn_props;";     /*!< identifier for channels settings in ini file */
   const qint32  c_chn_props_v1_0_len = 5;     /*!< V1.0 channels settings elements count */
+  const qint32  c_chn_height = 30;            /*!< Height of the channels widgets */
 
+  bool    m_channel_state[c_max_channel_count];   /*!< Channel state: true = note is currently played  false = note is not currently not played */
+  qint32  m_channel_count;   /*!< channel count */
+
+  QGridLayout *gridLayout;
+
+  QLabel *header1;
+  QLabel *header2;
+  QLabel *header3;
+  QLabel *header4;
+
+  QSpinBox *channel_voice_spinBox[c_max_channel_count];
+  QComboBox *channel_note_comboBox[c_max_channel_count];
+  QComboBox *channel_velocity_comboBox[c_max_channel_count];
+  QLineEdit *channel_group_lineEdit[c_max_channel_count];
 
   /*! Volume names for channels_velocity_comboBox
    */

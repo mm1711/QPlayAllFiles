@@ -37,9 +37,7 @@ HEADERS += \
     helper/settingsdialog.h \
     mainwindow.h
 
-FORMS += \
-    helper/channelproperties.ui \
-    mainwindow.ui
+FORMS +=
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

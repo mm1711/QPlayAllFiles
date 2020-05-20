@@ -37,7 +37,7 @@ CSettingsDialog::CSettingsDialog(QWidget *parent) :
 
   m_file_size = 0;
   m_midi_out = new QMidiOut();
-  m_max_channels = 99;
+  m_max_channels = 127;
 
   QVBoxLayout *mainLayout = new QVBoxLayout;
   mainLayout->setContentsMargins(6, 6, 6, 6);
@@ -53,7 +53,7 @@ CSettingsDialog::CSettingsDialog(QWidget *parent) :
 
   channels_spinBox = new QSpinBox();
   channels_spinBox->setMinimum(1);
-  channels_spinBox->setMaximum(72);
+  channels_spinBox->setMaximum(m_max_channels-1);
   channels_spinBox->setValue(13);
   horizontalLayout1->addWidget(channels_spinBox);
   QSpacerItem *horizontalSpacer1 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
@@ -155,7 +155,7 @@ CSettingsDialog::CSettingsDialog(QWidget *parent) :
   horizontalLayout3->addWidget(metronome_checkBox);
 
   metronomInstrument_comboBox = new QComboBox();
-  CChannelProperties ccpr;
+  CChannelProperties ccpr(nullptr);
   QStringList percussion_list = ccpr.getPercussionInstruments();
   metronomInstrument_comboBox->addItems(percussion_list);
   metronomInstrument_comboBox->adjustSize();
@@ -392,15 +392,7 @@ void CSettingsDialog::setSettings(CSettings settings)
   maxIntervalVariation_spinBox->setValue(settings.m_max_interval_variation);
   metronome_checkBox->setChecked(settings.m_with_metronome);
 
-  CChannelProperties ccpr;
-
-  int ix = settings.m_metronome_note;
-  if(ix > ccpr.getPercussionStartIndex())
-  {
-    ix -= ccpr.getPercussionStartIndex();
-  }
-
-  metronomInstrument_comboBox->setCurrentIndex(ix);
+  metronomInstrument_comboBox->setCurrentIndex(settings.m_metronome_note);
 
   staccato_checkBox->setChecked(settings.m_Staccato);
   loop_checkBox->setChecked(settings.m_Loop);
@@ -536,8 +528,12 @@ void CSettingsDialog::on_set_last_segment_Btn_clicked()
 
 <b>History   :</b>	 26-09-2019mm created by Michael Moser
 */
-void CSettingsDialog::on_channels_spinBox_valueChanged(int )
+void CSettingsDialog::on_channels_spinBox_valueChanged(int chn_count)
 {
+  if(chn_count >= m_max_channels)
+  {
+    channels_spinBox->setValue(m_max_channels-1);
+  }
   on_set_last_segment_Btn_clicked();
 }
 

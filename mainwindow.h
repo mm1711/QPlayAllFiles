@@ -51,6 +51,10 @@ Definition of QMainWindow GUI class.
 #include <QAudioProbe>
 #include <QSettings>
 #include <QRandomGenerator>
+#include <QAction>
+#include <QMenu>
+#include <QMenuBar>
+#include <QStatusBar>
 
 #include "./helper/segmentrenderarea.h"
 #include "./helper/bitstobytes.h"
@@ -60,10 +64,6 @@ Definition of QMainWindow GUI class.
 #include "./helper/midiinstrumentsdialog.h"
 #include "./QMidi/src/QMidiOut.h"
 
-
-QT_BEGIN_NAMESPACE
-namespace Ui { class MainWindow; }
-QT_END_NAMESPACE
 
 
 class MainWindow : public QMainWindow
@@ -81,6 +81,7 @@ private slots:
   void on_stopBtn_clicked();
   void on_actionOpen_triggered();
   void on_actionClose_triggered();
+  void on_actionNew_Config_triggered();
   void on_actionOpen_Config_triggered();
   void on_actionSave_Config_triggered();
   void on_actionSave_Config_As_triggered();
@@ -91,16 +92,11 @@ private slots:
   void updateProgress(qint64 pos);
   void displayErrorMessage();
 
-
-
-
 private:
-  Ui::MainWindow *ui;
-
   // constants
   const QString version = "0.3";                                  /*!< Application version string */
   const QString c_settings_version = "version;1.0;";              /*!< identifier for version of ini file */
-  static const qint32 c_max_channel_count = 88;                   /*!< maximum channels */
+  static const qint32 c_max_channel_count = 127;                  /*!< maximum channels */
   static const qint32 c_max_visible_segments = 156;               /*!< maximum visible segments */
   static const qint32 c_max_segments = 2*c_max_visible_segments;  /*!< maximum segments in data buffer */
   static const quint8 c_max_midi_voices = 16;                     /*!< maximum MIDI voices defined by MIDI spec */
@@ -123,9 +119,42 @@ private:
   QString   m_last_config_file;                         /*!< Last path for config file name */
 
 
+  QWidget *centralwidget;
+  QScrollArea *scrollArea;
+  QWidget *scrollAreaWidgetContents;
+
+  QLineEdit *currGroupBox;
+  QLabel *label_currGroupBox;
+  QComboBox *KeysComboBox;
+  QLabel *label_KeysComboBox;
+  QComboBox *ModesComboBox;
+  QLabel *label_ModesComboBox;
+  QComboBox *octaveComboBox;
+  QLabel *label_octaveComboBox;
+  QPushButton *btnSetNotes;
+  QCheckBox *record_checkBox;
+  QPushButton *playBtn;
+  QPushButton *stopBtn;
+
+  QAction *actionNew_Config;
+  QAction *actionOpen_Config;
+  QAction *actionSave_Config;
+  QAction *actionOpen;
+  QAction *actionClose;
+  QAction *actionMIDI_Interface;
+  QAction *actionSettings;
+  QAction *actionMIDI_Instruments;
+  QAction *actionScale_Settings;
+  QAction *actionSave_Config_As;
+  QMenuBar *menubar;
+  QMenu *menuFile;
+  QMenu *menuSettings;
+  QStatusBar *m_statusbar;
+
+
   QString m_filename;                                   /*!< Filename for data input file */
   CBitsToBytes *m_bits_to_bytes;                        /*!< Helper class for converting the bit stream from file to a byte array */
-  CChannelProperties *m_channels[c_max_channel_count] = { nullptr }; /*!< Properties of the defined channels */
+  CChannelProperties *m_channels ; /*!< Properties of the defined channels */
   QAudioRecorder *m_audioRecorder = nullptr;            /*!< Instance of QAudioRecorder for recording the played segments */
   QMidiOut *m_midi_out;                                 /*!< Instance of QMidiOut for playing the segments */
   int    m_midi_clock_interval;                         /*!< MIDI timer interval calculated from BPM (beats per minute) setting */
@@ -152,8 +181,10 @@ private:
 
 
   void resizeEvent(QResizeEvent* event);
+  void setupGUI();
+  void setupActions();
   void setupControls();
-  void setupChannels(QWidget* parent);
+  void setupChannels(qint32 max_channels);
   void setupMIDI_Instruments();
   bool openFile();
   void closeFile();

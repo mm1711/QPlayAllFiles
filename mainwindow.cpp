@@ -34,14 +34,11 @@ Implements all application logic.
  **/
 
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
 #include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
 {
-  ui->setupUi(this);
 
   QCoreApplication::setOrganizationName("moser-engineering");
   QCoreApplication::setOrganizationDomain("moser-engineering.de");
@@ -83,12 +80,10 @@ MainWindow::MainWindow(QWidget *parent)
   m_playing = false;
   m_init_play = true;
 
-  m_segmentRenderArea = new CSegmentRenderArea(ui->segmentsWidget, c_max_channel_count);
-  m_segmentRenderArea->setPen(QPen(Qt::gray));
-  m_segmentRenderArea->setBrush(QBrush(Qt::lightGray));
+  setupGUI();
 
 
-  setupControls();
+  setCentralWidget(centralwidget);
 
   m_bits_to_bytes = new CBitsToBytes(c_input_buffer_size);
 
@@ -119,10 +114,206 @@ MainWindow::~MainWindow()
 
   closeMIDI();
   closeFile();
-
-  delete ui;
 }
 
+/*! Setup User Interface
+
+
+<b>History   :</b>
+20-05-2020mm		created by Michael Moser
+*/
+void MainWindow::setupGUI()
+{
+
+  setupActions();
+
+  centralwidget = new QWidget(this);
+  scrollArea = new QScrollArea(centralwidget);
+  scrollArea->setGeometry(QRect(0, 0, 1600, 950));
+  scrollArea->setMaximumSize(QSize(1600, 950));
+  scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+  scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
+  scrollAreaWidgetContents = new QWidget();
+
+  QVBoxLayout *mainLayout = new QVBoxLayout();
+  mainLayout->setContentsMargins(6, 6, 6, 6);
+  mainLayout->setSpacing(10);
+
+  QHBoxLayout *horizontalLayout1 = new QHBoxLayout();
+  horizontalLayout1->setContentsMargins(6, 6, 6, 6);
+  horizontalLayout1->setSpacing(10);
+
+  QSpacerItem *horizontalSpacer1 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+  horizontalLayout1->addItem(horizontalSpacer1);
+
+  QGridLayout *gridLayout = new QGridLayout();
+  gridLayout->setContentsMargins(6, 6, 6, 6);
+  gridLayout->setSpacing(10);
+
+  label_currGroupBox = new QLabel();
+  label_currGroupBox->setText(tr("Group"));
+  gridLayout->addWidget(label_currGroupBox, 0, 0);
+
+  currGroupBox = new QLineEdit();
+  currGroupBox->setText("0");
+  gridLayout->addWidget(currGroupBox, 1, 0);
+
+  label_KeysComboBox = new QLabel();
+  label_KeysComboBox->setText(tr("Scale"));
+  gridLayout->addWidget(label_KeysComboBox, 0, 1);
+
+  KeysComboBox = new QComboBox();
+  KeysComboBox->addItems(c_scale_Names);
+  gridLayout->addWidget(KeysComboBox, 1, 1);
+
+  label_ModesComboBox = new QLabel();
+  label_ModesComboBox->setText(tr("Mode"));
+  gridLayout->addWidget(label_ModesComboBox, 0, 2);
+
+  ModesComboBox = new QComboBox();
+  ModesComboBox->addItems(c_scale_Modes);
+  gridLayout->addWidget(ModesComboBox, 1, 2);
+
+  label_octaveComboBox  = new QLabel();
+  label_octaveComboBox->setText(tr("Octave"));
+  gridLayout->addWidget(label_octaveComboBox, 0, 3);
+
+  octaveComboBox = new QComboBox();
+  octaveComboBox->addItems(c_octaves);
+  octaveComboBox->setCurrentIndex(2);
+  gridLayout->addWidget(octaveComboBox, 1, 3);
+
+  btnSetNotes = new QPushButton();
+  btnSetNotes->setText(tr("Set Notes"));
+  gridLayout->addWidget(btnSetNotes, 1, 4);
+
+  record_checkBox = new QCheckBox();
+  record_checkBox->setText(tr("Record"));
+  gridLayout->addWidget(record_checkBox, 1, 5);
+
+  playBtn = new QPushButton();
+  QIcon icon;
+  icon.addFile(QString::fromUtf8(":/images/media-play-32.png"), QSize(), QIcon::Normal, QIcon::Off);
+  playBtn->setIcon(icon);
+  playBtn->setIconSize(QSize(16, 16));
+  gridLayout->addWidget(playBtn, 1, 6);
+
+  stopBtn = new QPushButton();
+  QIcon icon1;
+  icon1.addFile(QString::fromUtf8(":/images/media-stop-32.png"), QSize(), QIcon::Normal, QIcon::Off);
+  stopBtn->setIcon(icon1);
+  stopBtn->setIconSize(QSize(16, 16));
+  gridLayout->addWidget(stopBtn, 1, 7);
+
+  horizontalLayout1->addItem(gridLayout);
+  horizontalLayout1->setAlignment(gridLayout, Qt::AlignRight);
+  mainLayout->addItem(horizontalLayout1);
+
+  connect(btnSetNotes, SIGNAL(clicked()), this, SLOT(on_btnSetNotes_clicked()));
+  connect(playBtn, SIGNAL(clicked()), this, SLOT(on_playBtn_clicked()));
+  connect(stopBtn, SIGNAL(clicked()), this, SLOT(on_stopBtn_clicked()));
+
+
+  QHBoxLayout *horizontalLayout2 = new QHBoxLayout();
+  horizontalLayout2->setContentsMargins(6, 6, 6, 6);
+  horizontalLayout2->setSpacing(10);
+
+  setupChannels(c_max_channel_count);
+
+  horizontalLayout2->addWidget(m_channels);
+
+  m_segmentRenderArea = new CSegmentRenderArea(nullptr, c_max_channel_count);
+  m_segmentRenderArea->setPen(QPen(Qt::gray));
+  m_segmentRenderArea->setBrush(QBrush(Qt::lightGray));
+  m_segmentRenderArea->setChannelHeight(m_channels->getChannelHeight());
+
+  horizontalLayout2->addWidget(m_segmentRenderArea);
+  horizontalLayout2->setAlignment(m_segmentRenderArea, Qt::AlignTop);
+
+  setupControls();
+
+  mainLayout->addItem(horizontalLayout2);
+
+  QSpacerItem *verticalSpacer;
+  verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+  mainLayout->addItem(verticalSpacer);
+
+  scrollAreaWidgetContents->setLayout(mainLayout);
+
+  scrollArea->setWidget(scrollAreaWidgetContents);
+
+
+  qint32 render_width = m_segmentRenderArea->geometry().x()+m_segmentRenderArea->geometry().width();
+  qint32 render_height = m_channels->size().height() + m_channels->geometry().y();
+
+#ifndef QT_NO_DEBUG
+  qDebug("render width=%d render height=%d", render_width, render_height);
+#endif
+
+  // next 2 lines necessary for scrolling
+  scrollArea->setWidgetResizable(false);
+  scrollAreaWidgetContents->setGeometry(0,0, render_width, render_height);
+
+  setMaximumWidth(1600);
+  setMaximumHeight(1100);
+
+  resize(1600, 1100);
+}
+
+void MainWindow::setupActions()
+{
+  actionOpen = new QAction(this);
+  actionClose = new QAction(this);
+  actionNew_Config = new QAction(this);
+  actionOpen_Config = new QAction(this);
+  actionSave_Config = new QAction(this);
+  actionSave_Config_As = new QAction(this);
+  actionSettings = new QAction(this);
+  actionMIDI_Instruments = new QAction(this);
+
+  actionNew_Config->setText(tr("New Config"));
+  actionOpen_Config->setText(tr("Open Config"));
+  actionSave_Config->setText(tr("Save Config"));
+  actionOpen->setText(tr("&Open File"));
+  actionClose->setText(tr("Close File"));
+  actionSettings->setText(tr("Settings"));
+  actionMIDI_Instruments->setText(tr("MIDI Instruments"));
+  actionSave_Config_As->setText(tr("Save Config As"));
+
+
+  menubar = new QMenuBar(this);
+  menubar->setGeometry(QRect(0, 0, 1500, 21));
+  menuFile = new QMenu(menubar);
+  menuFile->setTitle(tr("File"));
+  menuSettings = new QMenu(menubar);
+  menuSettings->setTitle(tr("Extras"));
+  setMenuBar(menubar);
+  m_statusbar = new QStatusBar(this);
+  setStatusBar(m_statusbar);
+
+  menubar->addAction(menuFile->menuAction());
+  menubar->addAction(menuSettings->menuAction());
+  menuFile->addAction(actionOpen);
+  menuFile->addAction(actionClose);
+  menuFile->addSeparator();
+  menuFile->addAction(actionNew_Config);
+  menuFile->addAction(actionOpen_Config);
+  menuFile->addAction(actionSave_Config);
+  menuFile->addAction(actionSave_Config_As);
+  menuSettings->addAction(actionSettings);
+  menuSettings->addAction(actionMIDI_Instruments);
+
+  connect(actionOpen, SIGNAL(triggered()), this, SLOT(on_actionOpen_triggered()));
+  connect(actionClose, SIGNAL(triggered()), this, SLOT(on_actionClose_triggered()));
+  connect(actionNew_Config, SIGNAL(triggered()), this, SLOT(on_actionNew_Config_triggered()));
+  connect(actionOpen_Config, SIGNAL(triggered()), this, SLOT(on_actionOpen_Config_triggered()));
+  connect(actionSave_Config, SIGNAL(triggered()), this, SLOT(on_actionSave_Config_triggered()));
+  connect(actionSave_Config_As, SIGNAL(triggered()), this, SLOT(on_actionSave_Config_As_triggered()));
+  connect(actionSettings, SIGNAL(triggered()), this, SLOT(on_actionSettings_triggered()));
+  connect(actionMIDI_Instruments, SIGNAL(triggered()), this, SLOT(on_actionMIDI_Instruments_triggered()));
+}
 /*! Resize Window
 
   Event which is fired upon resizing of application main window.
@@ -136,7 +327,7 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 {
    QMainWindow::resizeEvent(event);
    qDebug("resizeEvent: width=%d height=%d", width(), height());
-   ui->scrollArea->resize(width(), height()-40);
+   scrollArea->resize(width(), height()-40);
 }
 
 /*! Setup the GUI controls
@@ -153,63 +344,37 @@ void MainWindow::setupControls()
   m_status_bar_label = new QLabel(this);
   m_status_bar_label->setText(QString(tr("Current Segment: %1")).arg(0, 16));
   statusBar()->addPermanentWidget(m_status_bar_label);
-
-  ui->currGroupBox->setText("0");
-  ui->KeysComboBox->addItems(c_scale_Names);
-  ui->ModesComboBox->addItems(c_scale_Modes);
-  ui->octaveComboBox->addItems(c_octaves);
-  ui->octaveComboBox->setCurrentIndex(2);
-
-  setupChannels(ui->channelWidget);
-
-  ui->frame->move(ui->channelWidget->width()+10, 0);
-  // next 2 lines necessary for scrolling
-  ui->scrollArea->setWidgetResizable(false);
-  ui->scrollAreaWidgetContents->setGeometry(0,0,
-                                            m_segmentRenderArea->maximumSize().width()+ui->channelWidget->size().width(),
-                                            ui->channelWidget->size().height()+20);
-
-  // Resize widgets
-//  ui->segmentsWidget->setGeometry(350, c_channels_y_pos_start+10, 820, m_segmentRenderArea->maximumSize().height());
-  ui->segmentsWidget->setGeometry(ui->channelWidget->width()+10, c_channels_y_pos_start+10, 820, m_segmentRenderArea->maximumSize().height());
 }
 
 /*! Setup all channels
 
   Create and setup all channels
 
-  \param parent    parent widget for the channel widgets
+  \param max_channels    max. channels
 
 <b>History   :</b>	 26-09-2019mm		created by Michael Moser
 */
-void  MainWindow::setupChannels(QWidget* parent)
+void  MainWindow::setupChannels(qint32 max_channels)
 {
   int ix;
-  int x_pos = 5;
-  int y_pos = c_channels_y_pos_start;
-  int height = 20;
 
-  qint32 midi_start_note = ui->octaveComboBox->currentIndex() * 12;
+  qint32 midi_start_note = octaveComboBox->currentIndex() * 12;
 
+  m_channels = new CChannelProperties(nullptr, max_channels);
 
-  for (ix = 0; ix < c_max_channel_count; ix++)
+  for (ix = 0; ix < max_channels; ix++)
   {
 //    qDebug("chn=%d y_pos=%d", ix, y_pos);
-    m_channels[ix] = new CChannelProperties(parent);
-    height = m_channels[ix]->height();
-    m_channels[ix]->move(x_pos, y_pos);
-    m_channels[ix]->setNoteIndex(midi_start_note + ix);
-    y_pos += (height+1);
+    m_channels->setNoteIndex(ix, midi_start_note + ix);
   }
 
   // Resize channels widget
-  QSize s = parent->size();
-  parent->resize(s.width(), (c_channels_y_pos_start+(height+1)*c_max_channel_count));
+//  QSize s = parent->size();
+//  parent->resize(s.width(), ((m_channels->getChannelHeight()+1)*c_max_channel_count));
 /*
   s = parent->size();
   qDebug("new size: (%d, %d) calculated height=%d", s.width(), s.height(), (c_channels_y_pos_start+(height+1)*c_max_channel_count));
 */
-  m_segmentRenderArea->setChannelHeight(qint8(height));
 }
 
 
@@ -226,19 +391,20 @@ void MainWindow::on_btnSetNotes_clicked()
   int ix;
   int octave_ix = 0;
 
-  qint32 midi_start_note = ui->octaveComboBox->currentIndex() * 12;
+  qint32 midi_start_note = octaveComboBox->currentIndex() * 12;
 
-  m_current_scale = ui->KeysComboBox->currentIndex();
-  m_current_mode = ui->ModesComboBox->currentIndex();
+  m_current_scale = KeysComboBox->currentIndex();
+  m_current_mode = ModesComboBox->currentIndex();
 
   if ( m_current_scale == 0)
   {
     // chromatic scale selected.
     for (ch_ix = 0; ch_ix < c_max_channel_count; ch_ix++)
     {
-      if(m_channels[ch_ix]->getCurrentGroup() == ui->currGroupBox->text().toInt())
+      if(m_channels->getCurrentGroup(ch_ix) == currGroupBox->text().toInt())
       {
-        m_channels[ch_ix]->setNoteIndex(midi_start_note + ch_ix);
+        int note_ix = (midi_start_note + ch_ix) % c_max_channel_count;
+        m_channels->setNoteIndex(ch_ix, note_ix);
       }
     }
   }
@@ -247,9 +413,16 @@ void MainWindow::on_btnSetNotes_clicked()
     ix = c_start_notes[m_current_scale];
     for (ch_ix = 0; ch_ix < c_max_channel_count; ch_ix++)
     {
-      if(m_channels[ch_ix]->getCurrentGroup() == ui->currGroupBox->text().toInt())
+      if(m_channels->getCurrentGroup(ch_ix) == currGroupBox->text().toInt())
       {
-        m_channels[ch_ix]->setNoteIndex(midi_start_note + ix);
+        int note_ix = midi_start_note + ix;
+        if(note_ix >= c_max_channel_count)
+        {
+          ix = c_start_notes[m_current_scale];
+          note_ix = midi_start_note + ix;
+          qDebug("note_ix=%d", note_ix);
+        }
+        m_channels->setNoteIndex(ch_ix, note_ix);
         ix += c_scale_pattern[m_current_mode][octave_ix];
         if (ix > c_max_channel_count)
         {
@@ -406,7 +579,7 @@ void MainWindow::clear_tone_state()
 {
   for(int ix = 0; ix <   m_settings.m_current_max_channels; ix++)
   {
-    m_channels[ix]->setChannelState(false);
+    m_channels->setChannelState(ix, false);
   }
 }
 
@@ -462,7 +635,7 @@ void MainWindow::on_playBtn_clicked()
     if(!m_playing)
     {
       icon.addFile(QString::fromUtf8(":/images/media-pause-32.png"), QSize(), QIcon::Normal, QIcon::Off);
-      ui->playBtn->setIcon(icon);
+      playBtn->setIcon(icon);
       m_playing = true;
 
       if( m_init_play )
@@ -477,14 +650,14 @@ void MainWindow::on_playBtn_clicked()
         m_status_bar_label->setText(QString(tr("Current Segment: %1")).arg(m_current_segment, 16));
         position_segment(m_settings.m_FirstSegment);
 
-        if(ui->record_checkBox->isChecked())
+        if(record_checkBox->isChecked())
         {
           start_audio_recording();
         }
       }
       else
       {
-        if(ui->record_checkBox->isChecked())
+        if(record_checkBox->isChecked())
         {
           resume_audio_recording();
         }
@@ -495,13 +668,13 @@ void MainWindow::on_playBtn_clicked()
     else
     {
       icon.addFile(QString::fromUtf8(":/images/media-play-32.png"), QSize(), QIcon::Normal, QIcon::Off);
-      ui->playBtn->setIcon(icon);
+      playBtn->setIcon(icon);
       m_playing = false;
       m_init_play = false;
       all_notes_off();
       m_midi_clock->stop();
 
-      if(ui->record_checkBox->isChecked())
+      if(record_checkBox->isChecked())
       {
         pause_audio_recording();
       }
@@ -526,7 +699,7 @@ void MainWindow::on_stopBtn_clicked()
 {
   QIcon icon;
   icon.addFile(QString::fromUtf8(":/images/media-play-32.png"), QSize(), QIcon::Normal, QIcon::Off);
-  ui->playBtn->setIcon(icon);
+  playBtn->setIcon(icon);
   m_playing = false;
   m_init_play = true;
   all_notes_off();
@@ -633,8 +806,8 @@ int MainWindow::play_segment(char *segment)
 #endif
   for(int chn = 0; chn <   m_settings.m_current_max_channels; chn++)
   {
-    note = m_channels[chn]->getCurrentNoteIndex();
-    voice = m_channels[chn]->getCurrentVoiceIndex();
+    note = m_channels->getCurrentNoteIndex(chn);
+    voice = m_channels->getCurrentVoiceIndex(chn);
     if(note != c_invalid_note)
     {
 #ifndef QT_NO_DEBUG
@@ -643,13 +816,13 @@ int MainWindow::play_segment(char *segment)
 
       if(segment[chn] != 0)
       {
-//        out += QString::number((m_current_segment*m_settings.m_current_max_channels)+chn) + "-" + m_channels[chn]->getCurrentNoteText() + " ";
-        if(!m_channels[chn]->getChannelState() || m_settings.m_Staccato)
+//        out += QString::number((m_current_segment*m_settings.m_current_max_channels)+chn) + "-" + m_channels->getCurrentNoteText(chn) + " ";
+        if(!m_channels->getChannelState(chn) || m_settings.m_Staccato)
         {
-          m_channels[chn]->setChannelState(true);
+          m_channels->setChannelState(chn, true);
           if(m_midi_out != nullptr)
           {
-            int velocity = m_channels[chn]->getCurrentVelocityValue();
+            int velocity = m_channels->getCurrentVelocityValue(chn);
             if((m_current_count_time == (m_settings.m_bar_accent-1)) &&
                ((m_current_played_note % m_settings.m_bar_numerator) == 0))
             {
@@ -662,7 +835,7 @@ int MainWindow::play_segment(char *segment)
       }
       else
       {
-        m_channels[chn]->setChannelState(false);
+        m_channels->setChannelState(chn, false);
         if(m_midi_out != nullptr)
         {
           m_midi_out->noteOff(note, voice);
@@ -702,7 +875,7 @@ void MainWindow::init_MIDI_instruments()
 {
   for(int chn = 0; chn <   m_settings.m_current_max_channels; chn++)
   {
-    qint32 voice = m_channels[chn]->getCurrentVoiceIndex();
+    qint32 voice = m_channels->getCurrentVoiceIndex(chn);
     if(m_midi_out != nullptr)
     {
       m_midi_out->setInstrument(voice, m_midi_instruments[voice]);
@@ -722,11 +895,11 @@ void MainWindow::all_notes_off()
 
   for(int chn = 0; chn <   m_settings.m_current_max_channels; chn++)
   {
-    note = m_channels[chn]->getCurrentNoteIndex();
-    voice = m_channels[chn]->getCurrentVoiceIndex();
+    note = m_channels->getCurrentNoteIndex(chn);
+    voice = m_channels->getCurrentVoiceIndex(chn);
     if(note != c_invalid_note)
     {
-      m_channels[chn]->setChannelState(false);
+      m_channels->setChannelState(chn, false);
       if(m_midi_out != nullptr)
       {
         m_midi_out->noteOff(note, voice);
@@ -746,11 +919,11 @@ void MainWindow::show_hide_channels()
   {
     if(chn <   m_settings.m_current_max_channels)
     {
-      m_channels[chn]->show();
+      m_channels->show(chn);
     }
     else
     {
-      m_channels[chn]->hide();
+      m_channels->hide(chn);
     }
   }
 }
@@ -781,9 +954,9 @@ void MainWindow::saveConfig(QTextStream& os)
   for(int ix = 0; ix <   m_settings.m_current_max_channels; ix++)
   {
 #ifndef QT_NO_DEBUG
-    qDebug("%s", qPrintable(m_channels[ix]->toString()));
+    qDebug("%s", qPrintable(m_channels->toString(ix)));
 #endif
-    os << m_channels[ix]->toString() << "\n";
+    os << m_channels->toString(ix) << "\n";
   }
 
 #ifndef QT_NO_DEBUG
@@ -880,7 +1053,7 @@ void MainWindow::restoreConfig(QFile& in)
               return;
             }
           }
-          else if (id == m_channels[0]->getPropID())
+          else if (id == m_channels->getPropID())
           {
             if(!restoreChannelSettings(cfg_in, current_channel, version))
             {
@@ -1034,10 +1207,10 @@ QString MainWindow::saveScaleSettings()
 {
   QString str = c_scale_settings;
 
-  str += ui->currGroupBox->text() + ";" ;
-  str += QString::number(ui->KeysComboBox->currentIndex()) + ";" ;
-  str += QString::number(ui->ModesComboBox->currentIndex()) + ";" ;
-  str += QString::number(ui->octaveComboBox->currentIndex()) + ";" ;
+  str += currGroupBox->text() + ";" ;
+  str += QString::number(KeysComboBox->currentIndex()) + ";" ;
+  str += QString::number(ModesComboBox->currentIndex()) + ";" ;
+  str += QString::number(octaveComboBox->currentIndex()) + ";" ;
   return str;
 }
 
@@ -1058,13 +1231,13 @@ bool MainWindow::restoreScaleSettings(QStringList scales_list, QString version)
     {
       QString item = scales_list.at(1);
 
-      ui->currGroupBox->setText(item);
+      currGroupBox->setText(item);
       item = scales_list.at(2);
-      ui->KeysComboBox->setCurrentIndex(item.toInt());
+      KeysComboBox->setCurrentIndex(item.toInt());
       item = scales_list.at(3);
-      ui->ModesComboBox->setCurrentIndex(item.toInt());
+      ModesComboBox->setCurrentIndex(item.toInt());
       item = scales_list.at(4);
-      ui->octaveComboBox->setCurrentIndex(item.toInt());
+      octaveComboBox->setCurrentIndex(item.toInt());
       return true;
     }
     else
@@ -1154,7 +1327,8 @@ bool MainWindow::restoreGeneralSettings(QStringList general_list, QString versio
         m_settings.m_midi_out_name = "";
       }
       item =  general_list.at(ix++);
-        m_settings.m_current_max_channels = item.toInt() ;
+      m_settings.m_current_max_channels = item.toInt() ;
+
       show_hide_channels();
       item =  general_list.at(ix++);
       m_settings.m_BPM  = item.toInt() ;
@@ -1398,7 +1572,7 @@ bool MainWindow::restoreChannelSettings(QString chn_props, qint32 chn_ix, QStrin
   chn_props_list = chn_props.split(";", QString::SkipEmptyParts);
   if(version == "1.0")
   {
-    if(chn_props_list.size() == m_channels[0]->getPropLength())
+    if(chn_props_list.size() == m_channels->getPropLength())
     {
       if(chn_ix >= c_max_channel_count)
       {
@@ -1407,13 +1581,13 @@ bool MainWindow::restoreChannelSettings(QString chn_props, qint32 chn_ix, QStrin
       }
       else
       {
-         m_channels[chn_ix]->fromString(chn_props);
+         m_channels->fromString(chn_ix, chn_props);
         return true;
       }
     }
     else
     {
-      QMessageBox::critical(this, tr("Invalid config file"), QString(tr("Not enough data available for %1")).arg(m_channels[0]->getPropID()));
+      QMessageBox::critical(this, tr("Invalid config file"), QString(tr("Not enough data available for %1")).arg(m_channels->getPropID()));
       return false;
     }
   }
@@ -1433,7 +1607,7 @@ void MainWindow::on_actionSave_Config_triggered()
 {
   if(m_last_config_file.isEmpty())
   {
-   //  on_actionSave_Config_As_triggered();
+     on_actionSave_Config_As_triggered();
   }
   else
   {
@@ -1490,6 +1664,24 @@ void MainWindow::saveConfigFile(QString& fileName)
     out.close();
   }
 }
+
+void MainWindow::on_actionNew_Config_triggered()
+{
+  QString fileName;
+
+  fileName = QFileDialog::getOpenFileName(this, tr("Configuration File"), m_last_config_path, tr("Configurations (*.ini)"));
+
+  if(!fileName.isEmpty())
+  {
+    QSettings settings;
+    settings.setValue("last_config_file", fileName);
+
+    m_channels->resetChannels();
+    m_settings.resetSettings();
+    on_actionSave_Config_triggered();
+  }
+}
+
 
 /*! Handle File -> Open Config
 
@@ -1719,7 +1911,7 @@ void MainWindow::stop_audio_recording()
 */
 void MainWindow::displayErrorMessage()
 {
-  ui->statusbar->showMessage(m_audioRecorder->errorString());
+  m_statusbar->showMessage(m_audioRecorder->errorString());
 }
 
 /*! Display audio recording progress message at status bar
@@ -1732,7 +1924,7 @@ void MainWindow::updateProgress(qint64 duration)
     if (m_audioRecorder->error() != QMediaRecorder::NoError || duration < 2000)
         return;
 
-    ui->statusbar->showMessage(tr("Recorded %1 sec").arg(duration / 1000));
+    m_statusbar->showMessage(tr("Recorded %1 sec").arg(duration / 1000));
 }
 
 /*! Display audio recording status message at status bar
@@ -1770,7 +1962,7 @@ void MainWindow::updateStatus(QMediaRecorder::Status status)
 
   if (m_audioRecorder->error() == QMediaRecorder::NoError)
   {
-    ui->statusbar->showMessage(statusMessage);
+    m_statusbar->showMessage(statusMessage);
   }
 }
 
