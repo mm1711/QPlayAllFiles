@@ -30,7 +30,7 @@ GUI class displaying the bit stream graphically
 
 #include "segmentrenderarea.h"
 
-CSegmentRenderArea::CSegmentRenderArea(QWidget *parent, qint32 _channels) :
+CSegmentRenderArea::CSegmentRenderArea(QWidget *parent, qint32 max_segments, qint32 _channels) :
   QWidget(parent)
 {
   QPalette palette;
@@ -49,14 +49,14 @@ CSegmentRenderArea::CSegmentRenderArea(QWidget *parent, qint32 _channels) :
   setAutoFillBackground(true);
 
   m_channel_count = _channels;
+  m_max_visible_segments = max_segments;
 
-  m_max_segment_render_width = c_max_segment_render_width;
+  m_max_segment_render_width = m_max_visible_segments * c_channel_width;
   m_max_segment_render_height = c_channel_height* (m_channel_count + 1);
 
   setMinimumSize(QSize(m_max_segment_render_width, m_max_segment_render_height));
   setMaximumSize(QSize(m_max_segment_render_width, m_max_segment_render_height));
 
-  m_max_visible_segments = m_max_segment_render_width / c_channel_width;
 
   m_start_segment = 0;
   m_end_segment = m_max_visible_segments;
@@ -67,6 +67,20 @@ CSegmentRenderArea::CSegmentRenderArea(QWidget *parent, qint32 _channels) :
 CSegmentRenderArea::~CSegmentRenderArea()
 {
 }
+
+void CSegmentRenderArea::setMaxSegments(qint32 max_segments)
+{
+  m_max_visible_segments = max_segments;
+
+  m_max_segment_render_width = m_max_visible_segments * c_channel_width;
+
+  setMinimumSize(QSize(m_max_segment_render_width, m_max_segment_render_height));
+  setMaximumSize(QSize(m_max_segment_render_width, m_max_segment_render_height));
+
+  m_end_segment = m_max_visible_segments;
+  update();
+}
+
 
 /*! Return desired width x height of widget
 
@@ -211,7 +225,7 @@ void CSegmentRenderArea::paintEvent(QPaintEvent * /* event */)
     qint32 x_pos = 0;
     qint32 y_pos = m_channel_height;
 
-    for (qint32 segment = m_start_segment; segment < m_end_segment; segment++)
+    for (qint32 segment = m_start_segment; segment < m_end_segment && segment < m_max_segment; segment++)
     {
       for (qint32 channel = 0; channel < m_channel_count; channel++)
       {

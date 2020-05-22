@@ -60,6 +60,10 @@ MainWindow::MainWindow(QWidget *parent)
   m_settings.m_audio_container = "";
   m_settings.m_audio_sample_rate = c_audio_sample_rate;
 
+
+  m_buffer_read_size = (m_settings.m_max_segments*m_settings.m_current_max_channels );
+  m_buffer = (char *)malloc(m_buffer_read_size);
+
   m_current_scale = 0;
   m_current_mode = 0;
 
@@ -114,6 +118,10 @@ MainWindow::~MainWindow()
 
   closeMIDI();
   closeFile();
+  if(m_buffer != nullptr)
+  {
+    free(m_buffer);
+  }
 }
 
 /*! Setup User Interface
@@ -136,16 +144,41 @@ void MainWindow::setupGUI()
 
   scrollAreaWidgetContents = new QWidget();
 
-  QVBoxLayout *mainLayout = new QVBoxLayout();
-  mainLayout->setContentsMargins(6, 6, 6, 6);
-  mainLayout->setSpacing(10);
+  QGridLayout *mainGridLayout = new QGridLayout();
 
-  QHBoxLayout *horizontalLayout1 = new QHBoxLayout();
-  horizontalLayout1->setContentsMargins(6, 6, 6, 6);
-  horizontalLayout1->setSpacing(10);
+  QGridLayout *infoGridLayout = new QGridLayout();
+  info_0_0 = new QLabel();
+  info_0_0->setText(tr("BPM"));
+  infoGridLayout->addWidget(info_0_0, 0, 0);
+  info_0_1 = new QLabel();
+  info_0_1->setNum(m_settings.m_BPM);
+  infoGridLayout->addWidget(info_0_1, 0, 1);
+  info_0_2 = new QLabel();
+  info_0_2->setText(tr("Shortest"));
+  infoGridLayout->addWidget(info_0_2, 0, 2);
+  info_0_3 = new QLabel();
+  info_0_3->setText(tr("1/%1").arg(m_settings.m_shortest_note));
+  infoGridLayout->addWidget(info_0_3, 0, 3);
+  info_1_0 = new QLabel();
+  info_1_0->setText(tr("Measure"));
+  infoGridLayout->addWidget(info_1_0, 1, 0);
+  info_1_1 = new QLabel();
+  info_1_1->setText(tr("%1/%2").arg(m_settings.m_bar_numerator)
+                               .arg(m_settings.m_bar_denominator));
+  infoGridLayout->addWidget(info_1_1, 1, 1);
+  info_1_2 = new QLabel();
+  info_1_2->setText(tr("Max.Segs"));
+  infoGridLayout->addWidget(info_1_2, 1, 2);
+  info_1_3 = new QLabel();
+  info_1_3->setNum(m_settings.m_max_segments);
+  infoGridLayout->addWidget(info_1_3, 1, 3);
 
+/*
   QSpacerItem *horizontalSpacer1 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-  horizontalLayout1->addItem(horizontalSpacer1);
+
+  mainGridLayout->addItem(horizontalSpacer1, 0, 0);
+*/
+  mainGridLayout->addLayout(infoGridLayout, 0, 0);
 
   QGridLayout *gridLayout = new QGridLayout();
   gridLayout->setContentsMargins(6, 6, 6, 6);
@@ -157,6 +190,7 @@ void MainWindow::setupGUI()
 
   currGroupBox = new QLineEdit();
   currGroupBox->setText("0");
+  currGroupBox->setMaximumWidth(50);
   gridLayout->addWidget(currGroupBox, 1, 0);
 
   label_KeysComboBox = new QLabel();
@@ -165,6 +199,7 @@ void MainWindow::setupGUI()
 
   KeysComboBox = new QComboBox();
   KeysComboBox->addItems(c_scale_Names);
+  KeysComboBox->setMaximumWidth(150);
   gridLayout->addWidget(KeysComboBox, 1, 1);
 
   label_ModesComboBox = new QLabel();
@@ -173,6 +208,7 @@ void MainWindow::setupGUI()
 
   ModesComboBox = new QComboBox();
   ModesComboBox->addItems(c_scale_Modes);
+  ModesComboBox->setMaximumWidth(200);
   gridLayout->addWidget(ModesComboBox, 1, 2);
 
   label_octaveComboBox  = new QLabel();
@@ -182,14 +218,17 @@ void MainWindow::setupGUI()
   octaveComboBox = new QComboBox();
   octaveComboBox->addItems(c_octaves);
   octaveComboBox->setCurrentIndex(2);
+  octaveComboBox->setMaximumWidth(100);
   gridLayout->addWidget(octaveComboBox, 1, 3);
 
   btnSetNotes = new QPushButton();
   btnSetNotes->setText(tr("Set Notes"));
+  btnSetNotes->setMaximumWidth(150);
   gridLayout->addWidget(btnSetNotes, 1, 4);
 
   record_checkBox = new QCheckBox();
   record_checkBox->setText(tr("Record"));
+  record_checkBox->setMaximumWidth(150);
   gridLayout->addWidget(record_checkBox, 1, 5);
 
   playBtn = new QPushButton();
@@ -197,6 +236,7 @@ void MainWindow::setupGUI()
   icon.addFile(QString::fromUtf8(":/images/media-play-32.png"), QSize(), QIcon::Normal, QIcon::Off);
   playBtn->setIcon(icon);
   playBtn->setIconSize(QSize(16, 16));
+  playBtn->setMaximumWidth(50);
   gridLayout->addWidget(playBtn, 1, 6);
 
   stopBtn = new QPushButton();
@@ -204,46 +244,31 @@ void MainWindow::setupGUI()
   icon1.addFile(QString::fromUtf8(":/images/media-stop-32.png"), QSize(), QIcon::Normal, QIcon::Off);
   stopBtn->setIcon(icon1);
   stopBtn->setIconSize(QSize(16, 16));
+  stopBtn->setMaximumWidth(50);
   gridLayout->addWidget(stopBtn, 1, 7);
 
-  horizontalLayout1->addItem(gridLayout);
-  horizontalLayout1->setAlignment(gridLayout, Qt::AlignRight);
-  mainLayout->addItem(horizontalLayout1);
+  mainGridLayout->addLayout(gridLayout, 0, 1);
 
   connect(btnSetNotes, SIGNAL(clicked()), this, SLOT(on_btnSetNotes_clicked()));
   connect(playBtn, SIGNAL(clicked()), this, SLOT(on_playBtn_clicked()));
   connect(stopBtn, SIGNAL(clicked()), this, SLOT(on_stopBtn_clicked()));
 
-
-  QHBoxLayout *horizontalLayout2 = new QHBoxLayout();
-  horizontalLayout2->setContentsMargins(6, 6, 6, 6);
-  horizontalLayout2->setSpacing(10);
-
   setupChannels(c_max_channel_count);
 
-  horizontalLayout2->addWidget(m_channels);
+  mainGridLayout->addWidget(m_channels, 1, 0);
 
-  m_segmentRenderArea = new CSegmentRenderArea(nullptr, c_max_channel_count);
+  m_segmentRenderArea = new CSegmentRenderArea(nullptr, c_max_visible_segments, c_max_channel_count);
   m_segmentRenderArea->setPen(QPen(Qt::gray));
   m_segmentRenderArea->setBrush(QBrush(Qt::lightGray));
   m_segmentRenderArea->setChannelHeight(m_channels->getChannelHeight());
 
-  horizontalLayout2->addWidget(m_segmentRenderArea);
-  horizontalLayout2->setAlignment(m_segmentRenderArea, Qt::AlignTop);
-
   setupControls();
 
-  mainLayout->addItem(horizontalLayout2);
+  mainGridLayout->addWidget(m_segmentRenderArea, 1, 1);
 
-  QSpacerItem *verticalSpacer;
-  verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
-
-  mainLayout->addItem(verticalSpacer);
-
-  scrollAreaWidgetContents->setLayout(mainLayout);
+  scrollAreaWidgetContents->setLayout(mainGridLayout);
 
   scrollArea->setWidget(scrollAreaWidgetContents);
-
 
   qint32 render_width = m_segmentRenderArea->geometry().x()+m_segmentRenderArea->geometry().width();
   qint32 render_height = m_channels->size().height() + m_channels->geometry().y();
@@ -325,9 +350,12 @@ void MainWindow::setupActions()
 */
 void MainWindow::resizeEvent(QResizeEvent* event)
 {
-   QMainWindow::resizeEvent(event);
-   qDebug("resizeEvent: width=%d height=%d", width(), height());
-   scrollArea->resize(width(), height()-40);
+  QMainWindow::resizeEvent(event);
+  qDebug("resizeEvent: width=%d height=%d", width(), height());
+  if(scrollArea != nullptr)
+  {
+    scrollArea->resize(width(), height()-40);
+  }
 }
 
 /*! Setup the GUI controls
@@ -478,10 +506,16 @@ bool MainWindow::openFile()
     setWindowTitle(app_caption + version + " - " + m_filename);
 
     m_segmentRenderArea->setChannelCount(m_settings.m_current_max_channels);
-    m_buffer_read_size = m_settings.m_current_max_channels * c_max_segments;
+    if( m_buffer != nullptr)
+    {
+      free(m_buffer);
+    }
+    m_buffer_read_size = m_settings.m_current_max_channels * 2*m_settings.m_max_segments;
+    m_buffer = (char *)malloc(m_buffer_read_size);
+
     m_bits_to_bytes->readBitsAsBytes(m_buffer, static_cast<quint32>(m_buffer_read_size));
 
-    m_segmentRenderArea->setData(m_buffer, c_max_segments);
+    m_segmentRenderArea->setData(m_buffer, 2*m_settings.m_max_segments);
 
     m_settings.m_LastSegment = (m_bits_to_bytes->getFileSize() / m_settings.m_current_max_channels);
     return true;
@@ -598,9 +632,9 @@ void MainWindow::position_segment(qint64 segment)
   m_segmentRenderArea->setChannelCount(  m_settings.m_current_max_channels);
   qint64 bit_pos = segment *   m_settings.m_current_max_channels;
   m_bits_to_bytes->set_bit_position(bit_pos);
-  m_buffer_read_size =   m_settings.m_current_max_channels * c_max_segments;
+  m_buffer_read_size =   m_settings.m_current_max_channels * 2*m_settings.m_max_segments;
   m_bits_to_bytes->readBitsAsBytes(m_buffer, static_cast<quint32>(m_buffer_read_size));
-  m_segmentRenderArea->setData(m_buffer, c_max_segments);
+  m_segmentRenderArea->setData(m_buffer, 2*m_settings.m_max_segments);
 }
 
 /*! Play button has been clicked
@@ -726,13 +760,13 @@ void  MainWindow::midi_clock_timeout()
 
   m_status_bar_label->setText(QString(tr("Current Segment: %1")).arg(m_current_segment, 16));
 
-  char *pTmpSeg = &m_buffer[(m_current_segment % c_max_segments) *   m_settings.m_current_max_channels];
+  char *pTmpSeg = &m_buffer[(m_current_segment % m_settings.m_max_segments) *   m_settings.m_current_max_channels];
   int played_chns = play_segment(pTmpSeg);
   int delta_interval = 0;
 
   if(m_settings.m_with_interval_variation)
   {
-    if(/* played_chns > 3 && */ primeList.indexOf(played_chns) > 0)
+    if(primeList.indexOf(played_chns) > 0)
     {
       delta_interval = m_prng.bounded(m_settings.m_min_interval_variation,
                                       m_settings.m_max_interval_variation);
@@ -775,9 +809,9 @@ void  MainWindow::midi_clock_timeout()
   {
     // Read next segments
     m_segmentRenderArea->setChannelCount(  m_settings.m_current_max_channels);
-    m_buffer_read_size =   m_settings.m_current_max_channels * c_max_segments;
+    m_buffer_read_size =  (m_settings.m_current_max_channels * 2*m_settings.m_max_segments);
     m_bits_to_bytes->readBitsAsBytes(&m_buffer[m_buffer_read_size/2], static_cast<quint32>(m_buffer_read_size/2));
-    m_segmentRenderArea->setData(m_buffer, c_max_segments);
+    m_segmentRenderArea->setData(m_buffer, 2*m_settings.m_max_segments);
   }
   m_midi_clock->start(m_midi_clock_interval+delta_interval);
 }
@@ -797,13 +831,6 @@ int MainWindow::play_segment(char *segment)
   QString out;
   int played_chns = 0;
 
-#ifndef QT_NO_DEBUG
-  if((m_current_count_time == (m_settings.m_bar_accent-1)) &&
-     ((m_current_played_note % m_settings.m_bar_numerator) == 0))
-  {
-    qDebug("Accent>>>>>>>>>>>>>>>>>>>>>");
-  }
-#endif
   for(int chn = 0; chn <   m_settings.m_current_max_channels; chn++)
   {
     note = m_channels->getCurrentNoteIndex(chn);
@@ -816,7 +843,6 @@ int MainWindow::play_segment(char *segment)
 
       if(segment[chn] != 0)
       {
-//        out += QString::number((m_current_segment*m_settings.m_current_max_channels)+chn) + "-" + m_channels->getCurrentNoteText(chn) + " ";
         if(!m_channels->getChannelState(chn) || m_settings.m_Staccato)
         {
           m_channels->setChannelState(chn, true);
@@ -1283,6 +1309,7 @@ QString MainWindow::saveGeneralSettings()
   str += QString::number(m_settings.m_max_interval_variation) + ";" ;
   str += (m_settings.m_with_metronome ? "1;" : "0;");
   str += QString::number(m_settings.m_metronome_note) + ";" ;
+  str += QString::number(m_settings.m_max_segments) + ";" ;
 
   return str;
 }
@@ -1440,6 +1467,24 @@ bool MainWindow::restoreGeneralSettings(QStringList general_list, QString versio
         m_settings.m_metronome_note = 75;
       }
 
+      if(ix < general_list.size())
+      {
+        item =  general_list.at(ix++);
+        m_settings.m_max_segments = item.toInt();
+      }
+      else
+      {
+        m_settings.m_max_segments = 250;
+      }
+
+      m_segmentRenderArea->setMaxSegments(m_settings.m_max_segments);
+      qint32 render_width = m_segmentRenderArea->geometry().x()+m_segmentRenderArea->geometry().width();
+      qint32 render_height = m_channels->size().height() + m_channels->geometry().y();
+
+#ifndef QT_NO_DEBUG
+  qDebug("render width=%d render height=%d", render_width, render_height);
+#endif
+      scrollAreaWidgetContents->setGeometry(0,0, render_width, render_height);
 
       closeFile();
       return openFile();
@@ -1727,6 +1772,12 @@ void MainWindow::loadConfig(QString& fileName)
 
       restoreConfig(in);
 
+      info_0_1->setNum(m_settings.m_BPM);
+      info_0_3->setText(tr("1/%1").arg(m_settings.m_shortest_note));
+      info_1_1->setText(tr("%1/%2").arg(m_settings.m_bar_numerator)
+                                   .arg(m_settings.m_bar_denominator));
+      info_1_3->setNum(m_settings.m_max_segments);
+
       in.close();
     }
   }
@@ -1771,7 +1822,17 @@ void MainWindow::on_actionSettings_triggered()
       position_segment(m_settings.m_FirstSegment);
     }
     m_segmentRenderArea->setChannelCount(m_settings.m_current_max_channels);
+    m_segmentRenderArea->setMaxSegments(m_settings.m_max_segments);
+    qint32 render_width = m_segmentRenderArea->geometry().x()+m_segmentRenderArea->geometry().width();
+    qint32 render_height = m_channels->size().height() + m_channels->geometry().y();
 
+#ifndef QT_NO_DEBUG
+    qDebug("render width=%d render height=%d", render_width, render_height);
+#endif
+    scrollAreaWidgetContents->setGeometry(0,0, render_width, render_height);
+
+    closeFile();
+    openFile();
     double interval = calculate_interval();
 
 #ifndef QT_NO_DEBUG
@@ -1785,6 +1846,12 @@ void MainWindow::on_actionSettings_triggered()
       m_midi_clock->stop();
       m_midi_clock->start(m_midi_clock_interval);
     }
+
+    info_0_1->setNum(m_settings.m_BPM);
+    info_0_3->setText(tr("1/%1").arg(m_settings.m_shortest_note));
+    info_1_1->setText(tr("%1/%2").arg(m_settings.m_bar_numerator)
+                                 .arg(m_settings.m_bar_denominator));
+    info_1_3->setNum(m_settings.m_max_segments);
 
   }
 }

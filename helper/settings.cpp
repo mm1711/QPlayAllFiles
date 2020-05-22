@@ -56,4 +56,5 @@ void CSettings::resetSettings()
   m_max_interval_variation = 20;
   m_with_metronome = 1;
   m_metronome_note = 40;
+  m_max_segments = 250;
 }

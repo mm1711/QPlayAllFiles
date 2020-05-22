@@ -175,6 +175,17 @@ CSettingsDialog::CSettingsDialog(QWidget *parent) :
   staccato_checkBox->setLayoutDirection(Qt::RightToLeft);
   horizontalLayout4->addWidget(staccato_checkBox);
 
+  label_max_segments = new QLabel();
+  label_max_segments->setText(tr("Max Segments"));
+  horizontalLayout4->addWidget(label_max_segments);
+
+  max_segments_spinBox = new QSpinBox();
+  max_segments_spinBox->setMinimum(250);
+  max_segments_spinBox->setMaximum(2000);
+  max_segments_spinBox->setValue(250);
+  horizontalLayout4->addWidget(max_segments_spinBox);
+
+
   QSpacerItem *horizontalSpacer5 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
   horizontalLayout4->addItem(horizontalSpacer5);
 
@@ -395,6 +406,7 @@ void CSettingsDialog::setSettings(CSettings settings)
   metronomInstrument_comboBox->setCurrentIndex(settings.m_metronome_note);
 
   staccato_checkBox->setChecked(settings.m_Staccato);
+  max_segments_spinBox->setValue(settings.m_max_segments);
   loop_checkBox->setChecked(settings.m_Loop);
   firstSegment_lineEdit->setText(QString::number(settings.m_FirstSegment));
   lastSegment_lineEdit->setText(QString::number(settings.m_LastSegment));
@@ -495,6 +507,7 @@ void CSettingsDialog::getSettings(CSettings& settings)
   settings.m_max_interval_variation = maxIntervalVariation_spinBox->value();
   settings.m_with_metronome = metronome_checkBox->isChecked();
   settings.m_metronome_note = metronomInstrument_comboBox->currentIndex();
+  settings.m_max_segments = max_segments_spinBox->value();
 }
 
 /*! Event handler for "First" button

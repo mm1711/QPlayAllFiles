@@ -1,0 +1,23 @@
+20-05-2020mm  mainwindow.ui removed
+              New config action added
+
+V0.3
+19-05.2020mm  channelproperties.cpp: Load channel_note_comboBox with percussion names if voice == 9
+              settingsdialog.cpp/h: Build dialog from scratch without ui file.
+              Instrument for metronome selectable from comboBox with percussion names
+
+V0.2
+13-05-2020mm    New setting members: m_bar_numerator, m_bar_denominator, m_shortest_note and m_bar_accent
+                Use QT_NO_DEBUG for qDebug() outputs
+14-05-2020mm    m_current_count_time;  /*!< Current count time in bar 4/4 => 0 1 2 3, 0 1 2 3 ... */
+                m_current_played_note; /*!< Currently played note from start of playing */
+                channelproperties.h: Konstanten für velocity sind jetzt public
+                mit QSettings letzte Config Datei merken und bei Start laden
+                letzten Datenpfad merken
+                Betonung pro Takt eingebaut
+                Extra Kanal für Metronom
+                Leichte Variationen des m_midi_clock_intervals
+                   Wenn Anzahl der gespielten Töne Prim ist dann Variation +t
+                   Abhängig von Zufallszahl wenn diese auch Prim ist dann -t
+                Variation und Metronom konfigurierbar über Settings
+

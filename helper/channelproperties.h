@@ -100,11 +100,13 @@ private:
 
   QGridLayout *gridLayout;
 
+  QLabel *header0;
   QLabel *header1;
   QLabel *header2;
   QLabel *header3;
   QLabel *header4;
 
+  QLabel  *channel_number[c_max_channel_count];
   QSpinBox *channel_voice_spinBox[c_max_channel_count];
   QComboBox *channel_note_comboBox[c_max_channel_count];
   QComboBox *channel_velocity_comboBox[c_max_channel_count];

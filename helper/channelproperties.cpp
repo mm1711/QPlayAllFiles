@@ -42,29 +42,35 @@ CChannelProperties::CChannelProperties(QWidget *parent, qint32 max_channels) :
   gridLayout->setSpacing(2);
   gridLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
+  header0 = new QLabel;
+  header0->setText(tr("#"));
+  header0->setMinimumHeight(c_chn_height+20);
+  header0->setMaximumHeight(c_chn_height+20);
+  gridLayout->addWidget(header0, 0, 0 );
+
   header1 = new QLabel;
   header1->setText(tr("Voice"));
   header1->setMinimumHeight(c_chn_height);
   header1->setMaximumHeight(c_chn_height);
-  gridLayout->addWidget(header1, 0, 0 );
+  gridLayout->addWidget(header1, 0, 1 );
 
   header2 = new QLabel;
   header2->setText(tr("Note"));
   header2->setMinimumHeight(c_chn_height);
   header2->setMaximumHeight(c_chn_height);
-  gridLayout->addWidget(header2, 0, 1 );
+  gridLayout->addWidget(header2, 0, 2 );
 
   header3 = new QLabel;
   header3->setText(tr("Velocity"));
   header3->setMinimumHeight(c_chn_height);
   header3->setMaximumHeight(c_chn_height);
-  gridLayout->addWidget(header3, 0, 2 );
+  gridLayout->addWidget(header3, 0, 3 );
 
   header4 = new QLabel;
   header4->setText(tr("Group"));
   header4->setMinimumHeight(c_chn_height);
   header4->setMaximumHeight(c_chn_height);
-  gridLayout->addWidget(header4, 0, 3 );
+  gridLayout->addWidget(header4, 0, 4 );
 
   QVBoxLayout *mainLayout = new QVBoxLayout;
   mainLayout->setSizeConstraint(QLayout::SetMinimumSize);
@@ -72,34 +78,39 @@ CChannelProperties::CChannelProperties(QWidget *parent, qint32 max_channels) :
 
   for(int ix = 0; ix < m_channel_count; ix++)
   {
+    channel_number[ix] = new QLabel();
+    channel_number[ix]->setNum(ix+1);
+    gridLayout->addWidget(channel_number[ix], ix+1, 0 );
+
     channel_voice_spinBox[ix] = new QSpinBox();
     channel_voice_spinBox[ix]->setObjectName(QString::number(ix));
     channel_voice_spinBox[ix]->setMinimumSize(QSize(60, 0));
     channel_voice_spinBox[ix]->setMaximumSize(QSize(60, c_chn_height));
-    channel_voice_spinBox[ix]->setMaximum(15);
-    channel_voice_spinBox[ix]->setValue(0);
-    gridLayout->addWidget(channel_voice_spinBox[ix], ix+1, 0 );
+    channel_voice_spinBox[ix]->setMaximum(1);
+    channel_voice_spinBox[ix]->setMaximum(16);
+    channel_voice_spinBox[ix]->setValue(1);
+    gridLayout->addWidget(channel_voice_spinBox[ix], ix+1, 1 );
 
     channel_note_comboBox[ix] = new QComboBox();
     channel_note_comboBox[ix]->setMinimumSize(QSize(220, 0));
     channel_note_comboBox[ix]->setMaximumSize(QSize(220, c_chn_height));
     channel_note_comboBox[ix]->addItems(c_note_names);
     channel_note_comboBox[ix]->setCurrentIndex(ix);
-    gridLayout->addWidget(channel_note_comboBox[ix], ix+1, 1 );
+    gridLayout->addWidget(channel_note_comboBox[ix], ix+1, 2 );
 
     channel_velocity_comboBox[ix] = new QComboBox();
     channel_velocity_comboBox[ix]->setMinimumSize(QSize(90, 0));
     channel_velocity_comboBox[ix]->setMaximumSize(QSize(90, c_chn_height));
     channel_velocity_comboBox[ix]->addItems(c_velocity_names);
     channel_velocity_comboBox[ix]->setCurrentIndex(channel_velocity_comboBox[ix]->findText(c_velocity_names[6]));
-    gridLayout->addWidget(channel_velocity_comboBox[ix], ix+1, 2 );
+    gridLayout->addWidget(channel_velocity_comboBox[ix], ix+1, 3 );
 
     channel_group_lineEdit[ix] = new QLineEdit();
     channel_group_lineEdit[ix]->setMinimumSize(QSize(50, 0));
     channel_group_lineEdit[ix]->setMaximumSize(QSize(50, c_chn_height));
     channel_group_lineEdit[ix]->setMaxLength(4);
     channel_group_lineEdit[ix]->setText("0");
-    gridLayout->addWidget(channel_group_lineEdit[ix], ix+1, 3 );
+    gridLayout->addWidget(channel_group_lineEdit[ix], ix+1, 4 );
 
     connect(channel_voice_spinBox[ix], SIGNAL(valueChanged(int)), this, SLOT(on_channel_voice_spinBox_valueChanged(int)));
 
@@ -122,6 +133,7 @@ CChannelProperties::~CChannelProperties()
 
 void CChannelProperties::show( qint32 chn )
 {
+  channel_number[chn]->show();
   channel_voice_spinBox[chn]->show();
   channel_note_comboBox[chn]->show();
   channel_velocity_comboBox[chn]->show();
@@ -130,6 +142,7 @@ void CChannelProperties::show( qint32 chn )
 
 void CChannelProperties::hide( qint32 chn )
 {
+  channel_number[chn]->hide();
   channel_voice_spinBox[chn]->hide();
   channel_note_comboBox[chn]->hide();
   channel_velocity_comboBox[chn]->hide();
@@ -149,7 +162,7 @@ void CChannelProperties::setChannelCount(qint32 chn_cnt)
 */
 qint32 CChannelProperties::getCurrentVoiceIndex(qint32 chn)
 {
-  return channel_voice_spinBox[chn]->value();
+  return channel_voice_spinBox[chn]->value() - 1;
 }
 
 /*! Set current voice index
@@ -160,7 +173,7 @@ qint32 CChannelProperties::getCurrentVoiceIndex(qint32 chn)
 */
 void CChannelProperties::setVoiceIndex(qint32 chn, qint32 index)
 {
-  channel_voice_spinBox[chn]->setValue(index);
+  channel_voice_spinBox[chn]->setValue(index+1);
 }
 
 /*! Return current velocity index
@@ -222,7 +235,7 @@ void CChannelProperties::resetChannels()
 {
   for(int ix = 0; ix < m_channel_count; ix++)
   {
-    channel_voice_spinBox[ix]->setValue(0);
+    channel_voice_spinBox[ix]->setValue(1);
     channel_note_comboBox[ix]->setCurrentIndex(ix);
     channel_velocity_comboBox[ix]->setCurrentIndex(channel_velocity_comboBox[ix]->findText(c_velocity_names[6]));
     channel_group_lineEdit[ix]->setText("0");

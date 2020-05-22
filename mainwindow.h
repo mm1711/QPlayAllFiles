@@ -56,6 +56,7 @@ Definition of QMainWindow GUI class.
 #include <QMenuBar>
 #include <QStatusBar>
 
+
 #include "./helper/segmentrenderarea.h"
 #include "./helper/bitstobytes.h"
 #include "./helper/channelproperties.h"
@@ -97,8 +98,8 @@ private:
   const QString version = "0.3";                                  /*!< Application version string */
   const QString c_settings_version = "version;1.0;";              /*!< identifier for version of ini file */
   static const qint32 c_max_channel_count = 127;                  /*!< maximum channels */
-  static const qint32 c_max_visible_segments = 156;               /*!< maximum visible segments */
-  static const qint32 c_max_segments = 2*c_max_visible_segments;  /*!< maximum segments in data buffer */
+  static const qint32 c_max_visible_segments = 250;               /*!< maximum visible segments */
+//  static const qint32 c_max_segments = 2*c_max_visible_segments;  /*!< maximum segments in data buffer */
   static const quint8 c_max_midi_voices = 16;                     /*!< maximum MIDI voices defined by MIDI spec */
   static const qint32 c_max_midi_instruments = 128;               /*!< maximum MIDI instruments defined by MIDI spec */
   static const qint32 c_max_scales = 15;                          /*!< maximum scale count */
@@ -122,6 +123,16 @@ private:
   QWidget *centralwidget;
   QScrollArea *scrollArea;
   QWidget *scrollAreaWidgetContents;
+
+  QLabel *info_0_0;
+  QLabel *info_0_1;
+  QLabel *info_0_2;
+  QLabel *info_0_3;
+  QLabel *info_1_0;
+  QLabel *info_1_1;
+  QLabel *info_1_2;
+  QLabel *info_1_3;
+
 
   QLineEdit *currGroupBox;
   QLabel *label_currGroupBox;
@@ -151,7 +162,6 @@ private:
   QMenu *menuSettings;
   QStatusBar *m_statusbar;
 
-
   QString m_filename;                                   /*!< Filename for data input file */
   CBitsToBytes *m_bits_to_bytes;                        /*!< Helper class for converting the bit stream from file to a byte array */
   CChannelProperties *m_channels ; /*!< Properties of the defined channels */
@@ -166,7 +176,7 @@ private:
   qint32  m_midi_instruments[c_max_midi_voices] = {0};  /*!< Defined MIDI instruments per MIDI voice defined in File -> Settings dialog */
 
   qint32 m_buffer_read_size;                            /*!< Read buffer size depending on max channels and constant c_max_segments */
-  char  m_buffer[c_max_segments*c_max_channel_count];   /*!< Buffer for input data */
+  char  *m_buffer;                                      /*!< Buffer for input data */
 
   bool   m_playing;                                     /*!< Flag for playing state */
   bool   m_init_play;                                   /*!< Flag for initializing play settings. False for transition PAUSE -> PLAY */

@@ -60,6 +60,7 @@ public:
   qint32  m_max_interval_variation = 20; /*!< Maximum variation of MIDI clock interval  */
   bool    m_with_metronome = 1;         /*!< With metronome channel  */
   qint32  m_metronome_note = 40;        /*!< Metronome note (= instrument)  */
+  qint32  m_max_segments = 250;         /*!< Max. visible segments  */
 };
 
 #endif // CSETTINGS_H

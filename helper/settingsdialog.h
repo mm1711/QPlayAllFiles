@@ -113,6 +113,8 @@ private:
   QLabel *label_midi_interface;
   QComboBox *MIDI_Interface_comboBox;
   QDialogButtonBox *buttonBox;
+  QLabel *label_max_segments;
+  QSpinBox *max_segments_spinBox;
 
 
 
