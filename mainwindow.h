@@ -65,7 +65,15 @@ Definition of QMainWindow GUI class.
 #include "./helper/midiinstrumentsdialog.h"
 #include "./QMidi/src/QMidiOut.h"
 
+#define WITH_MIDI_TIMER_INTERVAL_TEST
 
+typedef struct MIDI_INTERVAL_TEST
+{
+  qint32 nominal_interval;
+  qint64 avg_sum;
+  qint64 avg_counter;
+  qint64 start_interval_time;
+} MIDI_INTERVAL_TEST;
 
 class MainWindow : public QMainWindow
 {
@@ -189,6 +197,9 @@ private:
 
   QRandomGenerator m_prng;
 
+#ifdef WITH_MIDI_TIMER_INTERVAL_TEST
+  MIDI_INTERVAL_TEST m_interval_test;
+#endif
 
   void resizeEvent(QResizeEvent* event);
   void setupGUI();

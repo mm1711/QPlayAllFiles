@@ -295,7 +295,7 @@ void CChannelProperties::setGroup(qint32 chn, qint32 index)
 QString CChannelProperties::toString(qint32 chn )
 {
   return  c_prop_id +
-          QString::number(channel_voice_spinBox[chn]->value()) + ";" +
+          QString::number(channel_voice_spinBox[chn]->value()-1) + ";" +
           QString::number(channel_note_comboBox[chn]->currentIndex()) + ";" +
           QString::number(channel_velocity_comboBox[chn]->currentIndex()) + ";" +
           channel_group_lineEdit[chn]->text() + ";";
@@ -316,7 +316,7 @@ void CChannelProperties::fromString(qint32 chn, QString settings)
     if(id == c_prop_id)
     {
       int ix = values.at(1).toInt();
-      channel_voice_spinBox[chn]->setValue(ix);
+      channel_voice_spinBox[chn]->setValue(ix+1);
       ix = values.at(2).toInt();
       if(values.at(1).toInt() == 9)
       {
@@ -338,7 +338,7 @@ void CChannelProperties::on_channel_voice_spinBox_valueChanged(int arg1)
   QSpinBox *spinBox = qobject_cast<QSpinBox *>(sender());
   qint32 ix = spinBox->objectName().toInt();
   channel_note_comboBox[ix]->clear();
-  if(arg1 == 9)
+  if(arg1 == 10)
   {
     // percussion
     channel_note_comboBox[ix]->addItems(c_percussion_names);

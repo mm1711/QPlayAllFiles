@@ -505,11 +505,11 @@ bool MainWindow::openFile()
   {
     setWindowTitle(app_caption + version + " - " + m_filename);
 
-    m_segmentRenderArea->setChannelCount(m_settings.m_current_max_channels);
-    if( m_buffer != nullptr)
+    if(m_buffer != nullptr)
     {
       free(m_buffer);
     }
+    m_segmentRenderArea->setChannelCount(m_settings.m_current_max_channels);
     m_buffer_read_size = m_settings.m_current_max_channels * 2*m_settings.m_max_segments;
     m_buffer = (char *)malloc(m_buffer_read_size);
 
@@ -697,6 +697,12 @@ void MainWindow::on_playBtn_clicked()
         }
       }
 
+#ifdef WITH_MIDI_TIMER_INTERVAL_TEST
+      m_interval_test.avg_counter = 0;
+      m_interval_test.avg_sum = 0;
+      m_interval_test.nominal_interval = m_midi_clock_interval;
+      m_interval_test.start_interval_time = QDateTime::currentMSecsSinceEpoch();
+#endif
       m_midi_clock->start(m_midi_clock_interval);
     }
     else
@@ -739,6 +745,12 @@ void MainWindow::on_stopBtn_clicked()
   all_notes_off();
   m_midi_clock->stop();
   stop_audio_recording();
+
+#ifdef WITH_MIDI_TIMER_INTERVAL_TEST
+  qDebug("midi timer interval test: nom=%d avg=%lld",
+         m_interval_test.nominal_interval, (m_interval_test.avg_sum/m_interval_test.avg_counter));
+#endif
+
 }
 
 
@@ -788,6 +800,10 @@ void  MainWindow::midi_clock_timeout()
     }
     else
     {
+#ifdef WITH_MIDI_TIMER_INTERVAL_TEST
+      qDebug("midi timer interval test: nom=%lld avg=%lld",
+             m_interval_test.nominal_interval, (m_interval_test.avg_sum/m_interval_test.avg_counter));
+#endif
       m_midi_clock->stop();
     }
   }
@@ -803,7 +819,7 @@ void  MainWindow::midi_clock_timeout()
     }
   }
 #ifndef QT_NO_DEBUG
-  qDebug("played=%lld count=%d delta_interval=%d", m_current_played_note, m_current_count_time, delta_interval);
+//  qDebug("played=%lld count=%d delta_interval=%d", m_current_played_note, m_current_count_time, delta_interval);
 #endif
   if(!m_segmentRenderArea->moveWindow(1))
   {
@@ -814,6 +830,18 @@ void  MainWindow::midi_clock_timeout()
     m_segmentRenderArea->setData(m_buffer, 2*m_settings.m_max_segments);
   }
   m_midi_clock->start(m_midi_clock_interval+delta_interval);
+
+
+
+#ifdef WITH_MIDI_TIMER_INTERVAL_TEST
+  qint64 e = QDateTime::currentMSecsSinceEpoch();
+
+  m_interval_test.avg_counter++;
+  m_interval_test.avg_sum += (e-m_interval_test.start_interval_time);
+  m_interval_test.nominal_interval = m_midi_clock_interval;
+  qDebug("midi_clock_timeout() %lldms", e-m_interval_test.start_interval_time);
+  m_interval_test.start_interval_time = e;
+#endif
 }
 
 /*! Play the current segment
@@ -845,6 +873,10 @@ int MainWindow::play_segment(char *segment)
       {
         if(!m_channels->getChannelState(chn) || m_settings.m_Staccato)
         {
+          if(m_settings.m_Staccato)
+          {
+            m_midi_out->noteOff(note, voice);
+          }
           m_channels->setChannelState(chn, true);
           if(m_midi_out != nullptr)
           {
@@ -884,7 +916,7 @@ int MainWindow::play_segment(char *segment)
     }
   }
 #ifndef QT_NO_DEBUG
-  qDebug("played_chns=%d", played_chns);
+//  qDebug("played_chns=%d", played_chns);
 #endif
 
 //  qDebug() << out;
@@ -1816,11 +1848,6 @@ void MainWindow::on_actionSettings_triggered()
     dlg->getSettings(m_settings);
     show_hide_channels();
 
-    if((last_max_channels != m_settings.m_current_max_channels) ||
-       (last_FirstSegment != m_settings.m_FirstSegment))
-    {
-      position_segment(m_settings.m_FirstSegment);
-    }
     m_segmentRenderArea->setChannelCount(m_settings.m_current_max_channels);
     m_segmentRenderArea->setMaxSegments(m_settings.m_max_segments);
     qint32 render_width = m_segmentRenderArea->geometry().x()+m_segmentRenderArea->geometry().width();
@@ -1833,6 +1860,14 @@ void MainWindow::on_actionSettings_triggered()
 
     closeFile();
     openFile();
+
+    if((last_max_channels != m_settings.m_current_max_channels) ||
+       (last_FirstSegment != m_settings.m_FirstSegment))
+    {
+      last_max_channels = m_settings.m_current_max_channels;
+      last_FirstSegment = m_settings.m_FirstSegment;
+      position_segment(m_settings.m_FirstSegment);
+    }
     double interval = calculate_interval();
 
 #ifndef QT_NO_DEBUG
@@ -1844,6 +1879,16 @@ void MainWindow::on_actionSettings_triggered()
     if(m_midi_clock->isActive())
     {
       m_midi_clock->stop();
+
+#ifdef WITH_MIDI_TIMER_INTERVAL_TEST
+      qDebug("midi timer interval test: nom=%lld avg=%lld",
+             m_interval_test.nominal_interval, (m_interval_test.avg_sum/m_interval_test.avg_counter));
+
+      m_interval_test.avg_counter = 0;
+      m_interval_test.avg_sum = 0;
+      m_interval_test.nominal_interval = m_midi_clock_interval;
+      m_interval_test.start_interval_time = QDateTime::currentMSecsSinceEpoch();
+#endif
       m_midi_clock->start(m_midi_clock_interval);
     }
 
